@@ -1,0 +1,16 @@
+$body-color: white;
+$body-bg: #18230f;
+$primary: #18230f;
+$primary: #51c978;
+$secondary: #27391C;
+
+$input-placeholder-color: white;
+
+.invert {
+    filter: invert(1);
+}
+body {
+    font-family: "Lobster", sans-serif;
+}
+
+@import "../node_modules/bootstrap/scss/bootstrap";
