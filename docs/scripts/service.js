@@ -1,4 +1,4 @@
-import { myApiUrl } from "./constants.js";
+// import { myApiUrl } from "./constants.js";
 
 const myApiUrl = "https://soutenu-chan-unscheming.ngrok-free.dev/";
 
@@ -10,7 +10,7 @@ export const searchSongs = async (songTitle) => {
 
 export const getRequestedSongs = async () => {
   // docs/scripts/constants.js
-  const songs = await response.json();
+  const songs = await response.json(`${myApiUrl}/requested-songs`);
   return songs;
 };
 
