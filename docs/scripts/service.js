@@ -1,6 +1,6 @@
-// import { myApiUrl } from "./constants.js";
+import { myApiUrl } from "./constants.js";
 
-const myApiUrl = "https://soutenu-chan-unscheming.ngrok-free.dev/";
+// const myApiUrl = "https://soutenu-chan-unscheming.ngrok-free.dev/";
 
 export const searchSongs = async (songTitle) => {
   const response = await fetch(`${myApiUrl}/search/${songTitle}`);
@@ -9,9 +9,10 @@ export const searchSongs = async (songTitle) => {
 };
 
 export const getRequestedSongs = async () => {
-  // docs/scripts/constants.js
-  const songs = await response.json(`${myApiUrl}/requested-songs`);
-  return songs;
+    const response = await fetch(`${myApiUrl}/requested-songs`);
+    const songs = await response.json();
+    return songs;
+    
 };
 
 export const requestSong = async (songID) => {
