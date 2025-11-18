@@ -11,7 +11,7 @@ using System;
 Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.UseUrls("http://127.0.0.1:5001");
+// builder.WebHost.UseUrls(Environment.GetEnvironmentVariable("SPOTIFY_REDIRECT_URI"));
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -38,12 +38,21 @@ async Task<string> AccessToken()
             var clientId = Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_ID");
             var clientSecret = Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_SECRET");
 
+            if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
+            {
+                return "";
+            }
+
             var tokenRequest = new HttpRequestMessage(HttpMethod.Post, "https://accounts.spotify.com/api/token");
             var auth = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
             tokenRequest.Headers.Authorization = new AuthenticationHeaderValue("Basic", auth);
+            // include client_id and client_secret in the form as a fallback for environments
+            // where the Authorization header might be stripped
             tokenRequest.Content = new FormUrlEncodedContent(new[]
             {
-                new KeyValuePair<string, string>("grant_type", "client_credentials")
+                new KeyValuePair<string, string>("grant_type", "client_credentials"),
+                new KeyValuePair<string, string>("client_id", clientId),
+                new KeyValuePair<string, string>("client_secret", clientSecret)
             });
 
             var response = await client.SendAsync(tokenRequest);
@@ -150,6 +159,11 @@ app.MapGet("/callback", async (string code) =>
     var clientSecret = Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_SECRET");
     var redirectUri = Environment.GetEnvironmentVariable("SPOTIFY_REDIRECT_URI");
 
+    if (string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(clientSecret))
+    {
+        return Results.Content(JsonSerializer.Serialize(new { error = "missing_client_credentials" }), "application/json");
+    }
+
     var tokenRequest = new HttpRequestMessage(HttpMethod.Post, "https://accounts.spotify.com/api/token");
     var auth = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
     tokenRequest.Headers.Authorization = new AuthenticationHeaderValue("Basic", auth);
@@ -157,7 +171,9 @@ app.MapGet("/callback", async (string code) =>
     {
         new KeyValuePair<string, string>("grant_type", "authorization_code"),
         new KeyValuePair<string, string>("code", code),
-        new KeyValuePair<string, string>("redirect_uri", redirectUri ?? "")
+        new KeyValuePair<string, string>("redirect_uri", redirectUri ?? ""),
+        new KeyValuePair<string, string>("client_id", clientId),
+        new KeyValuePair<string, string>("client_secret", clientSecret)
     });
 
     var response = await client.SendAsync(tokenRequest);
@@ -202,7 +218,6 @@ app.MapGet("/request-song/{songID}", (string songID) =>
     {
         requestedSongs[songID] = 1;
     }
-    Console.WriteLine(songID);
     return Results.Json(new { songID, requests = requestedSongs[songID] });
 });
 
@@ -248,6 +263,11 @@ app.MapGet("/requested-songs", async () =>
         return Results.Json(new { error = ex.Message });
     }
 });
+
+app.MapGet("/debug/spotify-config", () => Results.Json(new {
+    clientIdPresent = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_ID")),
+    redirectUri = Environment.GetEnvironmentVariable("SPOTIFY_REDIRECT_URI")
+}));
 
 app.Run();
 
