@@ -1,6 +1,6 @@
 import { myApiUrl } from "./constants.js";
 
-const myApiUrl = "https://your-ngrok-id.ngrok.io";
+const myApiUrl = "https://soutenu-chan-unscheming.ngrok-free.dev/";
 
 export const searchSongs = async (songTitle) => {
   const response = await fetch(`${myApiUrl}/search/${songTitle}`);
