@@ -1,5 +1,7 @@
 import { myApiUrl } from "./constants.js";
 
+const myApiUrl = "https://your-ngrok-id.ngrok.io";
+
 export const searchSongs = async (songTitle) => {
   const response = await fetch(`${myApiUrl}/search/${songTitle}`);
   const songs = await response.json();
@@ -7,7 +9,7 @@ export const searchSongs = async (songTitle) => {
 };
 
 export const getRequestedSongs = async () => {
-  const response = await fetch(`${myApiUrl}/requested-songs`);
+  // docs/scripts/constants.js
   const songs = await response.json();
   return songs;
 };
