@@ -185,7 +185,7 @@ app.MapGet("/", async () =>
     return $"Spotify API Proxy is running. Access Token: {accessToken}";
 });
 
-app.MapGet("/login", (string returnTo) =>
+app.MapGet("/login", (string returnTo = "http://127.0.0.1:5001/me") =>
 {
 
     // var clientId = Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_ID");
@@ -207,7 +207,7 @@ app.MapGet("/login", (string returnTo) =>
               $"&response_type=code" +
               $"&redirect_uri={redirectUri}" +
               $"&state={state}" +
-              $"&scope=playlist-read-private";
+              $"&scope=user-read-private%20user-read-email";
 
     return Results.Redirect(url);
 });
