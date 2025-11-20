@@ -2,6 +2,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Collections.Generic;
+using System.Linq;
 using DotNetEnv;
 using Sprache;
 using System.Text.Json.Serialization;
@@ -27,7 +28,6 @@ string accessToken = "";
 string userAccessToken = "";
 string userRefreshToken = "";
 
-Dictionary<string, int> requestedSongs = new();
 
 async Task<string> AccessToken()
 {
@@ -68,32 +68,115 @@ async Task<string> AccessToken()
     }
 }
 
-async Task<SongData> GetSong(string id)
+SongData? filterSongData(JsonElement jsonObject)
 {
-    accessToken = await AccessToken();
-    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-    var response = client.GetAsync($"https://api.spotify.com/v1/tracks/{id}/");
-    var content = response.Result.Content.ReadAsStringAsync().Result;
-    var jsonObject = JsonSerializer.Deserialize<JsonElement>(content);
-    SongData songData = filterSongData(jsonObject);
-    return songData;
-}
+    string id = "";
+    if (jsonObject.TryGetProperty("id", out JsonElement idElem) && idElem.ValueKind != JsonValueKind.Null)
+    {
+        id = idElem.GetString() ?? "";
+    }
 
-SongData filterSongData(JsonElement jsonObject)
-{
-    string id = jsonObject.GetProperty("id").GetString() ?? "";
-    string trackName = jsonObject.GetProperty("name").GetString() ?? "Unknown";
-    string artistName = jsonObject.GetProperty("artists")[0].GetProperty("name").GetString() ?? "Unknown Artist";
-    string imgURL = jsonObject.GetProperty("album").GetProperty("images")[2].GetProperty("url").GetString() ?? "";
+    if (string.IsNullOrEmpty(id))
+    {
+        // missing id -> treat as invalid
+        return null;
+    }
+
+    string trackName = "Unknown";
+    if (jsonObject.TryGetProperty("name", out JsonElement nameElem) && nameElem.ValueKind != JsonValueKind.Null)
+    {
+        trackName = nameElem.GetString() ?? "Unknown";
+    }
+
+    string artistName = "Unknown Artist";
+    if (jsonObject.TryGetProperty("artists", out JsonElement artistsElem) && artistsElem.ValueKind == JsonValueKind.Array)
+    {
+        var enumerator = artistsElem.EnumerateArray();
+        if (enumerator.MoveNext())
+        {
+            var firstArtist = enumerator.Current;
+            if (firstArtist.TryGetProperty("name", out JsonElement artistNameElem) && artistNameElem.ValueKind != JsonValueKind.Null)
+            {
+                artistName = artistNameElem.GetString() ?? "Unknown Artist";
+            }
+        }
+    }
+
+    string imgURL = "";
+    if (jsonObject.TryGetProperty("album", out JsonElement albumElem) && albumElem.ValueKind == JsonValueKind.Object)
+    {
+        if (albumElem.TryGetProperty("images", out JsonElement imagesElem) && imagesElem.ValueKind == JsonValueKind.Array)
+        {
+            int idx = 0;
+            foreach (var img in imagesElem.EnumerateArray())
+            {
+                if (idx == 2)
+                {
+                    if (img.TryGetProperty("url", out JsonElement urlElem) && urlElem.ValueKind != JsonValueKind.Null)
+                    {
+                        imgURL = urlElem.GetString() ?? "";
+                    }
+                    break;
+                }
+                idx++;
+            }
+
+            // fallback to the first image if index 2 doesn't exist
+            if (string.IsNullOrEmpty(imgURL))
+            {
+                var enumerator2 = imagesElem.EnumerateArray();
+                if (enumerator2.MoveNext())
+                {
+                    var firstImg = enumerator2.Current;
+                    if (firstImg.TryGetProperty("url", out JsonElement firstUrlElem) && firstUrlElem.ValueKind != JsonValueKind.Null)
+                    {
+                        imgURL = firstUrlElem.GetString() ?? "";
+                    }
+                }
+            }
+        }
+    }
+
     SongData songData = new()
     {
         id = id,
         trackName = trackName,
         artistName = artistName,
         imgURL = imgURL,
+        timeRequested = DateTime.Now
     };
     return songData;
 }
+
+async Task<SongData?> GetSong(string id)
+{
+    if (string.IsNullOrWhiteSpace(id))
+    {
+        return null;
+    }
+
+    accessToken = await AccessToken();
+    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+    using var response = await client.GetAsync($"https://api.spotify.com/v1/tracks/{id}/");
+    if (!response.IsSuccessStatusCode)
+    {
+        return null;
+    }
+
+    var content = await response.Content.ReadAsStringAsync();
+    var jsonObject = JsonSerializer.Deserialize<JsonElement>(content);
+
+    // ensure parsed object actually has an id
+    if (!jsonObject.TryGetProperty("id", out JsonElement idElem) || idElem.ValueKind == JsonValueKind.Null)
+    {
+        return null;
+    }
+
+    SongData? songData = filterSongData(jsonObject);
+    return songData;
+}
+
 
 
 app.MapGet("/", async () =>
@@ -102,49 +185,34 @@ app.MapGet("/", async () =>
     return $"Spotify API Proxy is running. Access Token: {accessToken}";
 });
 
-app.MapGet("/artist/{artistID}", async (string artistID) =>
+app.MapGet("/login", (string returnTo) =>
 {
-    accessToken = await AccessToken();
-    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-    var response = client.GetAsync($"https://api.spotify.com/v1/artists/{artistID}/");
-    var content = response.Result.Content.ReadAsStringAsync().Result;
-    
-    return Results.Content(content, "application/json");
+
+    // var clientId = Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_ID");
+    // var redirectUri = Environment.GetEnvironmentVariable("SPOTIFY_REDIRECT_URI");
+    // var state = Uri.EscapeDataString(returnTo);
+
+    // var scope = "user-read-private user-read-email";
+    // var authUrl = $"https://accounts.spotify.com/authorize?response_type=code&client_id={clientId}&scope={Uri.EscapeDataString(scope)}&redirect_uri={Uri.EscapeDataString(redirectUri ?? "")}";
+    // return Results.Redirect(authUrl);
+
+    // var redirectUri = Uri.EscapeDataString("https://localhost:5001/api/callback");
+    var redirectUri = Uri.EscapeDataString(Environment.GetEnvironmentVariable("SPOTIFY_REDIRECT_URI"));
+    var state = Uri.EscapeDataString(returnTo);
+
+    var ClientId = Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_ID");
+
+    var url = $"https://accounts.spotify.com/authorize" +
+              $"?client_id={ClientId}" +
+              $"&response_type=code" +
+              $"&redirect_uri={redirectUri}" +
+              $"&state={state}" +
+              $"&scope=playlist-read-private";
+
+    return Results.Redirect(url);
 });
 
-app.MapGet("/song/{songID}", async (string songID) =>
-{
-    return await GetSong(songID);
-});
-
-app.MapGet("/search/{query}", async (string query) =>
-{
-    accessToken = await AccessToken();
-    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-    var response = client.GetAsync($"https://api.spotify.com/v1/search?q={Uri.EscapeDataString(query)}&type=track&limit=10");
-    var content = response.Result.Content.ReadAsStringAsync().Result;
-    var jsonObject = JsonSerializer.Deserialize<JsonElement>(content);
-    var jsonObjectTracks = jsonObject.GetProperty("tracks").GetProperty("items");
-    var jsonListOfTracks = jsonObjectTracks.EnumerateArray().ToList();
-    var listOfTracks = new List<SongData>();
-    foreach (var song in jsonListOfTracks)
-    {
-        listOfTracks.Add(filterSongData(song));
-    }
-    return Results.Json(listOfTracks);
-    // return Results.Content(content, "application/json");
-});
-
-app.MapGet("/login", () =>
-{
-    var clientId = Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_ID");
-    var redirectUri = Environment.GetEnvironmentVariable("SPOTIFY_REDIRECT_URI");
-    var scope = "user-read-private user-read-email";
-    var authUrl = $"https://accounts.spotify.com/authorize?response_type=code&client_id={clientId}&scope={Uri.EscapeDataString(scope)}&redirect_uri={Uri.EscapeDataString(redirectUri ?? "")}";
-    return Results.Redirect(authUrl);
-});
-
-app.MapGet("/callback", async (string code) =>
+app.MapGet("/callback", async (string code, string state) =>
 {
     var clientId = Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_ID");
     var clientSecret = Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_SECRET");
@@ -170,9 +238,8 @@ app.MapGet("/callback", async (string code) =>
     var doc = JsonDocument.Parse(content);
     userAccessToken = doc.RootElement.GetProperty("access_token").GetString() ?? "";
     userRefreshToken = doc.RootElement.GetProperty("refresh_token").GetString() ?? "";
-    return Results.Content(content, "application/json");
+    return Results.Redirect(state);
 });
-
 
 app.MapGet("/me", async () =>
 {
@@ -192,76 +259,169 @@ app.MapGet("/me", async () =>
     return Results.Content(content, "application/json");
 });
 
-app.MapGet("/request-song/{songID}", (string songID) =>
+
+
+
+
+
+app.MapGet("/song/{songID}", async (HttpContext http) =>
 {
-    if (requestedSongs.ContainsKey(songID))
+    var songID = http.Request.RouteValues["songID"]?.ToString() ?? "";
+    var song = await GetSong(songID);
+    if (song == null)
     {
-        requestedSongs[songID]++;
+        return Results.Json(new { error = "Song not found" });
     }
-    else
+    return Results.Json(song);
+});
+
+app.MapGet("/artist/{artistID}", async (string artistID) =>
+{
+    accessToken = await AccessToken();
+    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+    var response = client.GetAsync($"https://api.spotify.com/v1/artists/{artistID}/");
+    var content = response.Result.Content.ReadAsStringAsync().Result;
+
+    return Results.Content(content, "application/json");
+});
+
+app.MapGet("/search/{query}", async (string query) =>
+{
+    accessToken = await AccessToken();
+    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+
+    using var response = await client.GetAsync($"https://api.spotify.com/v1/search?q={Uri.EscapeDataString(query)}&type=track&limit=10");
+    if (!response.IsSuccessStatusCode)
+        return Results.Json(new { error = "search failed", status = response.StatusCode });
+
+    var content = await response.Content.ReadAsStringAsync();
+    var jsonObject = JsonSerializer.Deserialize<JsonElement>(content);
+    var jsonObjectTracks = jsonObject.GetProperty("tracks").GetProperty("items");
+    var listOfTracks = new List<SongData>();
+    foreach (var songElem in jsonObjectTracks.EnumerateArray())
     {
-        requestedSongs[songID] = 1;
+        var sd = filterSongData(songElem);
+        if (sd != null) listOfTracks.Add(sd);
     }
-    return Results.Json(new { songID, requests = requestedSongs[songID] });
+    return Results.Json(listOfTracks);
+});
+
+
+
+
+
+
+
+
+
+
+app.MapGet("/request-song/{user}/{songID}", async (string user, string songID) =>
+{
+    SongData song;
+    var songData = await GetSong(songID);
+    if (songData == null)
+    {
+        return Results.Json(new { error = "Song not found" });
+    }
+    song = songData;
+    lock (PlaylistManager.RequestedSongs)
+    {
+        if (PlaylistManager.RequestedSongs.ContainsKey(user))
+        {
+            PlaylistManager.RequestedSongs[user].Add(song);
+        }
+        else
+        {
+            PlaylistManager.RequestedSongs.Add(user, new() { song });
+
+        }
+    }
+    lock (PlaylistManager.AllSongs)
+    {
+        if (PlaylistManager.AllSongs.Where(s => s.id == songID).Count() == 0)
+        {
+            PlaylistManager.AllSongs.Add(song);
+        }
+    }
+
+    return Results.Json(new { songID, requests = PlaylistManager.getSongRequestCount(songID) });
+});
+
+app.MapGet("/remove-song/{user}/{songId}", (string user, string songId) =>
+{
+
+    int index;
+    SongData song;
+
+        song = PlaylistManager.RequestedSongs[user].Find(s => s.id == songId);
+        PlaylistManager.RequestedSongs[user].Remove(song);
+
+        if (PlaylistManager.RequestedSongs[user].Count() <= 0)
+        {
+            PlaylistManager.RequestedSongs.Remove(user);
+        }
+
+    if (PlaylistManager.getSongRequestCount(songId) == 0)
+    {
+        index = PlaylistManager.AllSongs.FindIndex(s => s.id == songId);
+        PlaylistManager.AllSongs.RemoveAt(index);
+    }
+
+    return Task.FromResult(Results.Json(new { user, status = "removed" }));
 });
 
 app.MapGet("/clear-requests", () =>
 {
-    requestedSongs.Clear();
+    PlaylistManager.RequestedSongs.Clear();
+    PlaylistManager.AllSongs.Clear();
     return Results.Json(new { status = "cleared" });
 });
 
-app.MapGet("/remove-song/{songID}", (string songID) =>
+
+
+
+
+
+
+
+app.MapGet("/get-user-requests/{user}", (string user) =>
 {
-    if (requestedSongs.ContainsKey(songID))
+
+    if (!PlaylistManager.RequestedSongs.ContainsKey(user))
     {
-        requestedSongs[songID]--;
+        return Results.Json(new { statusCode = "User Not found" });
     }
-    else
-    {
-        return Results.Json(new { status = "Unable to remove", songID });
-    }
-    if (requestedSongs[songID] <= 0)
-    {
-        requestedSongs.Remove(songID);
-        return Results.Json(new { status = "removed", songID });
-    }
-    return Results.Json(new { songID, requests = requestedSongs[songID] });
+    return Results.Json(PlaylistManager.RequestedSongs[user].OrderBy(s => s.timeRequested));
 });
 
 app.MapGet("/requested-songs", async () =>
 {
-    List<SongDataWithCount> detailedRequestedSongs = new();
-    foreach (var kv in requestedSongs)
-    {
-        var songData = await GetSong(kv.Key);
-        detailedRequestedSongs.Add(new() { id = songData.id, trackName = songData.trackName, artistName = songData.artistName, imgURL = songData.imgURL, requestCount = kv.Value });
-
-    }
-    try
-    {
-        return Results.Json(detailedRequestedSongs.OrderByDescending(song => song.requestCount).ToList());
-    }
-    catch (Exception ex)
-    {
-        return Results.Json(new { error = ex.Message });
-    }
+    return PlaylistManager.AllSongs.OrderBy(s => s.requestCount).Reverse();
 });
 
 app.Run();
 
-struct SongData
+public static class PlaylistManager
 {
-    public string id { get; set; }
-    public string trackName { get; set; }
-    public string artistName { get; set; }
-    public string imgURL { get; set; }
+    public static Dictionary<string, List<SongData>> RequestedSongs { get; set; } = new Dictionary<string, List<SongData>>();
+    public static List<SongData> AllSongs { get; set; } = new();
+    public static int getSongRequestCount(string songID)
+    {
+        int count = 0;
+        foreach (var user in RequestedSongs)
+        {
+            count += user.Value.Where(s => s.id == songID).Count();
+        }
+        return count;
+    }
 }
-struct SongDataWithCount
+
+public class SongData
 {
     public string id { get; set; }
     public string trackName { get; set; }
     public string artistName { get; set; }
     public string imgURL { get; set; }
-    public int requestCount { get; set; }
+    public DateTime timeRequested { get; set; }
+    public int requestCount => PlaylistManager.getSongRequestCount(id);
 }

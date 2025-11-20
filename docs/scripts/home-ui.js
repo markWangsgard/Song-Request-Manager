@@ -1,8 +1,11 @@
-import { getRequestedSongs, searchSongs, requestSong } from "./service.js";
+import { getRequestedSongs, searchSongs } from "./service.js";
+import { requestSong } from "./domain.js";
 
 const searchBarElement = document.getElementById("search");
 const resultsContainer = document.getElementById("results");
 let typingTimer;
+
+const updateRequestedSongs = new Event("updateRequestedSongs");
 
 searchBarElement.addEventListener("input", async (event) => {
   clearTimeout(typingTimer);
@@ -11,7 +14,7 @@ searchBarElement.addEventListener("input", async (event) => {
     resultsContainer.replaceChildren();
     const query = searchBarElement.value.trim();
     displaySongs(query !== "", query);
-  }, 250);
+  }, 100);
 });
 
 const displaySongs = async (searching, query = "") => {
@@ -19,13 +22,21 @@ const displaySongs = async (searching, query = "") => {
     ? `Search Results for "${query}"`
     : `Requested Songs`;
 
-  const results = searching ? await searchSongs(query) : await getRequestedSongs();
-
+  const results = searching
+    ? await searchSongs(query)
+    : await getRequestedSongs();
   resultsContainer.replaceChildren();
 
   results.forEach((result) => {
     const resultElement = document.createElement("div");
-    resultElement.classList.add("d-flex", "justify-content-center", "col-auto", "p-3", "rounded");
+    resultElement.classList.add(
+      "d-flex",
+      "justify-content-center",
+      "col-auto",
+      "p-3",
+      "m-2",
+      "rounded"
+    );
     resultElement.style.maxWidth = "400px";
 
     const imgElement = document.createElement("img");
@@ -42,8 +53,12 @@ const displaySongs = async (searching, query = "") => {
     const artistElement = document.createElement("h4");
     artistElement.textContent = result.artistName;
 
-      const countElement = document.createElement("p");
-      countElement.textContent = `Requested ${result.requestCount} times`;
+    const countElement = document.createElement("p");
+    if (!searching) {
+      countElement.textContent = `Requested ${result.requestCount} ${
+        result.requestCount === 1 ? "time" : "times"
+      }`;
+    }
 
     const updateImgHeight = () => {
       imgElement.style.maxHeight = `${textContainer.offsetHeight}px`;
@@ -75,9 +90,16 @@ const displaySongs = async (searching, query = "") => {
     resultElement.addEventListener("mouseleave", () => {
       resultElement.classList.remove("bg-secondary");
     });
-    resultElement.addEventListener("click", () => {
+    resultElement.addEventListener("click", async () => {
       searchBarElement.value = "";
-      requestSong(result.id);
+
+      await requestSong(result.id);
+      dispatchEvent(updateRequestedSongs);
+
+      displaySongs(false);
+    });
+
+    resultElement.addEventListener("updateRequestedSongs", () => {
       displaySongs(false);
     });
   });
