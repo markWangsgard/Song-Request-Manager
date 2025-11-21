@@ -7,6 +7,25 @@
   filter: invert(1);
 }
 
+.responsive-width {
+  width: 100%; /* Default for mobile */
+}
+
+@media (min-width: 576px) {
+  .responsive-width {
+    width: 75%; /* 75% width on small screens and above */
+  }
+}
+@media (min-width: 768px) {
+  .responsive-width {
+    width: 50%; /* 50% width on medium screens and above */
+  }
+}
+@media (min-width: 992px) {
+  .responsive-width {
+    width: 25%; /* 25% width on large screens and above */
+  }
+}
 body {
   font-family: "Lobster", sans-serif;
 }
