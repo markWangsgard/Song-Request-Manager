@@ -2,42 +2,101 @@ $body-color: white;
 $body-bg: #18230f;
 // $primary: #18230f;
 $primary: #51c978;
-$secondary: #27391C;
+$secondary: #324924;
 
 $input-placeholder-color: white;
 
 #requestLimit {
-    width: fit-content;
+  width: fit-content;
 }
 
 .invert {
-    filter: invert(1);
+  filter: invert(1);
 }
 
 .responsive-width {
-    width: 100%; /* Default for mobile */
-  }
+  width: 100%; /* Default for mobile */
+}
 
-  @media (min-width: 576px) {
-    .responsive-width {
-      width: 75%; /* 75% width on small screens and above */
-    }
+@media (min-width: 576px) {
+  .responsive-width {
+    width: 75%; /* 75% width on small screens and above */
   }
+}
 
-  @media (min-width: 768px) {
-    .responsive-width {
-      width: 50%; /* 50% width on medium screens and above */
-    }
+@media (min-width: 768px) {
+  .responsive-width {
+    width: 50%; /* 50% width on medium screens and above */
   }
+}
 
-  @media (min-width: 992px) {
-    .responsive-width {
-      width: 25%; /* 25% width on large screens and above */
-    }
+@media (min-width: 992px) {
+  .responsive-width {
+    width: 25%; /* 25% width on large screens and above */
   }
+}
+
+/* From Uiverse.io by gharsh11032000 */
+/* The switch - the box around the slider */
+.switch {
+  font-size: 17px;
+  position: relative;
+  display: inline-block;
+  width: 2.625em;
+  height: 1.5em;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  inset: 0;
+  // background: $secondary;
+  border: solid;
+  border-width: .1em;
+  border-radius: 50px;
+  border-color: $primary;
+  transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 1.05em;
+  width: 1.05em;
+  left: 0.2em;
+  bottom: 0.2em;
+  background-color: $primary;
+  border-radius: 50px;
+  box-shadow: 0 0px 20px rgba(0, 0, 0, 0.4);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.switch input:checked + .slider {
+  background: $primary;
+}
+
+.switch input:focus + .slider {
+  box-shadow: 0 0 1px $secondary;
+}
+
+.switch input:checked + .slider:before {
+  background-color: white;
+  translate: .9em .05em;
+  width: 1.5em;
+  height: 1.5em;
+  bottom: 0;
+}
 
 body {
-    font-family: "Lobster", sans-serif;
+  font-family: "Lobster", sans-serif;
 }
 
 @import "../node_modules/bootstrap/scss/bootstrap";
