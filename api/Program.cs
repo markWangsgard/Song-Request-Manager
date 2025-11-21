@@ -187,16 +187,6 @@ app.MapGet("/", async () =>
 
 app.MapGet("/login", (string returnTo = "http://127.0.0.1:5001/me") =>
 {
-
-    // var clientId = Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_ID");
-    // var redirectUri = Environment.GetEnvironmentVariable("SPOTIFY_REDIRECT_URI");
-    // var state = Uri.EscapeDataString(returnTo);
-
-    // var scope = "user-read-private user-read-email";
-    // var authUrl = $"https://accounts.spotify.com/authorize?response_type=code&client_id={clientId}&scope={Uri.EscapeDataString(scope)}&redirect_uri={Uri.EscapeDataString(redirectUri ?? "")}";
-    // return Results.Redirect(authUrl);
-
-    // var redirectUri = Uri.EscapeDataString("https://localhost:5001/api/callback");
     var redirectUri = Uri.EscapeDataString(Environment.GetEnvironmentVariable("SPOTIFY_REDIRECT_URI"));
     var state = Uri.EscapeDataString(returnTo);
 

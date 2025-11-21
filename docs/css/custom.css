@@ -1,4 +1,8 @@
 @charset "UTF-8";
+#requestLimit {
+  width: fit-content;
+}
+
 .invert {
   filter: invert(1);
 }

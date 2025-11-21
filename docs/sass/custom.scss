@@ -1,10 +1,14 @@
 $body-color: white;
 $body-bg: #18230f;
-$primary: #18230f;
+// $primary: #18230f;
 $primary: #51c978;
 $secondary: #27391C;
 
 $input-placeholder-color: white;
+
+#requestLimit {
+    width: fit-content;
+}
 
 .invert {
     filter: invert(1);

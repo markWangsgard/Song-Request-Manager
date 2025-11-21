@@ -1,0 +1,6 @@
+How would I manage multiple admins? 
+do I need to keep the userAccessToken and userRefreshToken secure?
+
+Help setting up docker so that we can run api on web server
+
+Does my code update all clients, if another client has updated it?

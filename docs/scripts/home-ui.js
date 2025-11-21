@@ -27,8 +27,8 @@ const displaySongs = async (searching, query = "") => {
     : await getRequestedSongs();
   resultsContainer.replaceChildren();
 
-  results.forEach((result) => {
-    const resultElement = document.createElement("div");
+    results.forEach((result) => {
+      const resultElement = document.createElement("div");
     resultElement.classList.add(
       "d-flex",
       "justify-content-center",
@@ -38,32 +38,32 @@ const displaySongs = async (searching, query = "") => {
       "rounded"
     );
     resultElement.style.maxWidth = "400px";
-
+    
     const imgElement = document.createElement("img");
     imgElement.src = result.imgURL;
     imgElement.alt = result.trackName;
     imgElement.style.objectFit = "contain";
-
+    
     const textContainer = document.createElement("div");
     textContainer.classList.add("ms-3", "text-container");
-
+    
     const titleElement = document.createElement("h3", "fs-6");
     titleElement.textContent = result.trackName;
-
+    
     const artistElement = document.createElement("h4");
     artistElement.textContent = result.artistName;
-
+    
     const countElement = document.createElement("p");
     if (!searching) {
       countElement.textContent = `Requested ${result.requestCount} ${
         result.requestCount === 1 ? "time" : "times"
-      }`;
+        }`;
     }
-
+    
     const updateImgHeight = () => {
       imgElement.style.maxHeight = `${textContainer.offsetHeight}px`;
     };
-
+    
     updateImgHeight();
 
     if (window.ResizeObserver) {
@@ -72,7 +72,7 @@ const displaySongs = async (searching, query = "") => {
     } else {
       window.addEventListener("resize", updateImgHeight);
     }
-
+    
     textContainer.appendChild(titleElement);
     textContainer.appendChild(artistElement);
     resultElement.appendChild(imgElement);
@@ -80,9 +80,9 @@ const displaySongs = async (searching, query = "") => {
     if (!searching) {
       textContainer.appendChild(countElement);
     }
-
+    
     resultsContainer.appendChild(resultElement);
-
+    
     resultElement.addEventListener("mouseenter", () => {
       resultElement.style.cursor = "pointer";
       resultElement.classList.add("bg-secondary");
@@ -92,13 +92,13 @@ const displaySongs = async (searching, query = "") => {
     });
     resultElement.addEventListener("click", async () => {
       searchBarElement.value = "";
-
+      
       await requestSong(result.id);
       dispatchEvent(updateRequestedSongs);
-
+      
       displaySongs(false);
     });
-
+    
     resultElement.addEventListener("updateRequestedSongs", () => {
       displaySongs(false);
     });
