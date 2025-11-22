@@ -33,12 +33,12 @@
         <button id="signIn" class="btn btn-outline-primary mt-3">
           Sign In
         </button>
-        <h5 class="mt-3">Signed in as ...</h5>
+        <h5 class="mt-3" id="userName">Signed in as ...</h5>
         <hr class="w-50" />
       </div>
       <div class="d-flex flex-column align-items-center">
         <h3>Select Playlist</h3>
-        <button class="mt-3 btn btn-outline-primary">Select Playlist</button>
+        <button class="mt-3 btn btn-outline-primary" id="selectPlaylist">Select Playlist</button>
         <h5 class="mt-3">Playlist selected: ...</h5>
         <hr class="w-50" />
       </div>
@@ -61,10 +61,10 @@
         <h3>Allow Repeats</h3>
         <div class="mb-2">
           <label class="switch">
-            <input type="checkbox" id="autoAdd" />
+            <input type="checkbox" id="allowRepeats" />
             <span class="slider"></span>
           </label>
-          <label for="autoAdd">Allow Repeats</label>
+          <label for="allowRepeats">Allow Repeats</label>
         </div>
         <hr class="w-50" />
       </div>
@@ -180,8 +180,8 @@
             <input
               class="p-2 rounded bg-body border-primary text-primary color-primary"
               type="time"
-              name=""
-              id=""
+              name="timePicker"
+              id="timePicker"
             />
           </div>
         </div>
