@@ -1,6 +1,8 @@
 Todo:
 
 * select Playlist
+
 * make admin recommendations viewer
 * Add songs to Playlist
+
 * real time updates

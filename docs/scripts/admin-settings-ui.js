@@ -58,6 +58,7 @@ const addAllEventListeners = async () => {
 
   autoAddSwitchElement.addEventListener("input", () => {
     setAutoAdd(autoAddSwitchElement.checked);
+    updateAutoAdd();
   });
 
   mondayCheckboxElement.addEventListener("input", () => {
@@ -93,8 +94,8 @@ const addAllEventListeners = async () => {
   })
 };
 
-const updateUser = async () => {
-  const user = await getMe();
+const updateUser = () => {
+  const user = currentUser;
   if (user !== null) {
     userNameElement.classList.remove("visually-hidden")
     userNameElement.textContent = `Signed in as ${user.displayName}`;
@@ -111,10 +112,21 @@ const updatePlaylist = () => {
   // add update playlist function
 };
 
+const updateAutoAdd = () => {
+  const autoAddSelectionElement = document.getElementById("autoAddSelection");
+  if (autoAdd)
+  {
+    autoAddSelectionElement.classList.remove("visually-hidden")
+  }
+  else {
+    autoAddSelectionElement.classList.add("visually-hidden")
+  }
+}
+
 const loadSettings = () => {
   updateUser();
-
   updatePlaylist();
+  updateAutoAdd();
 
   requestLimitInputElement.value = numbOfAllowedRequests;
 
