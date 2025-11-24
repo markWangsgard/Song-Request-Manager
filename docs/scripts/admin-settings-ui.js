@@ -39,8 +39,8 @@ const sundayCheckboxElement = document.getElementById("daySunday");
 const addAllEventListeners = async () => {
   loginButton.addEventListener("click", async (e) => {
     e.preventDefault();
-    const user = await login();
-    // setUser(await getMe());
+    await login();
+    updateUser();
   });
 
   selectPlaylistButton.addEventListener("click", (e) => {
@@ -58,7 +58,12 @@ const addAllEventListeners = async () => {
 
   autoAddSwitchElement.addEventListener("input", () => {
     setAutoAdd(autoAddSwitchElement.checked);
-    updateAutoAdd();
+    const autoAddSelectionElement = document.getElementById("autoAddSelection");
+    if (autoAdd) {
+      autoAddSelectionElement.classList.remove("visually-hidden");
+    } else {
+      autoAddSelectionElement.classList.add("visually-hidden");
+    }
   });
 
   mondayCheckboxElement.addEventListener("input", () => {
@@ -91,20 +96,20 @@ const addAllEventListeners = async () => {
 
   timePickerElement.addEventListener("input", () => {
     setAutoAddTime(timePickerElement.value);
-  })
+  });
 };
 
 const updateUser = () => {
   const user = currentUser;
   if (user !== null) {
-    userNameElement.classList.remove("visually-hidden")
+    userNameElement.classList.remove("visually-hidden");
     userNameElement.textContent = `Signed in as ${user.displayName}`;
     const loginButton = document.getElementById("signIn");
     loginButton.textContent = "Sign Out";
+    loginButton.disabled = true;
     setUser(user);
-  }
-  else {
-    userNameElement.classList.add("visually-hidden")
+  } else {
+    userNameElement.classList.add("visually-hidden");
   }
 };
 
@@ -112,16 +117,7 @@ const updatePlaylist = () => {
   // add update playlist function
 };
 
-const updateAutoAdd = () => {
-  const autoAddSelectionElement = document.getElementById("autoAddSelection");
-  if (autoAdd)
-  {
-    autoAddSelectionElement.classList.remove("visually-hidden")
-  }
-  else {
-    autoAddSelectionElement.classList.add("visually-hidden")
-  }
-}
+const updateAutoAdd = () => {};
 
 const loadSettings = () => {
   updateUser();
@@ -148,4 +144,4 @@ const loadSettings = () => {
 addAllEventListeners();
 await loadSettingsFromApi();
 loadSettings();
- await setSettings();
+await setSettings();
