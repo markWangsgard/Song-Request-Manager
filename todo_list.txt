@@ -6,3 +6,5 @@ Todo:
 * Add songs to Playlist
 
 * real time updates
+
+* access anywhere (localhost.run ??)
