@@ -19,7 +19,7 @@ import {
   loadSettingsFromApi,
   currentUser,
 } from "./constants.js";
-import { getMe, getSettings, login, setSettings } from "./service.js";
+import { getMe, getPlaylists, getSettings, login, setSettings } from "./service.js";
 
 const loginButton = document.getElementById("signIn");
 const selectPlaylistButton = document.getElementById("selectPlaylist");

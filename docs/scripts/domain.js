@@ -11,12 +11,10 @@ export const updateRequestsFromSettings = async () => {
   await loadSettingsFromApi();
 
   const requests = await getUserRequests(userID)
-  console.log(requests);
   if (requests.length > numbOfAllowedRequests)
   {
     for (let i = requests.length - numbOfAllowedRequests; i > 0; i--)
       {
-        console.log("made it here");
       RemoveSong(userID, requests[0].id);
     }
   }

@@ -292,35 +292,39 @@ app.MapGet("/callback", async (string code, string state) =>
 
 app.MapGet("/me", async () =>
 {
-    // accessToken = await AccessToken();
-    // client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userAccessToken);
-    // 
-    // var response = client.GetAsync("https://api.spotify.com/v1/me/");
-    // var responseMessage = await response;
-    // var profileContent = await responseMessage.Content.ReadAsStringAsync();
-    // var profileElement = JsonSerializer.Deserialize<JsonElement>(profileContent);
-    // 
-    // var content = JsonSerializer.Serialize(new
-    // {
-    // profile = profileElement,
-    // userAccessToken,
-    // userRefreshToken
-    // });
-    // return Results.Content(content, "application/json");
-
     return PlaylistManager.settings.currentUser;
 });
 
-app.MapGet("/m2", async () =>
-{
+app.MapGet("/me/playlists", async () => {
     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userAccessToken);
 
-    var responseMe = client.GetAsync("https://api.spotify.com/v1/me/");
-    var responseMessage = await responseMe;
-    var profileContent = await responseMessage.Content.ReadAsStringAsync();
-    var profileElement = JsonSerializer.Deserialize<JsonElement>(profileContent);
+    var response = client.GetAsync("https://api.spotify.com/v1/me/playlists");
+    var responseMessage = await response;
+    var content = response.Result.Content.ReadAsStringAsync().Result;
+    var doc = JsonDocument.Parse(content);
+    var playlists = doc.RootElement.GetProperty("items");
+    
+    List<PlaylistData> playlistDatas = new();
+    foreach (var playlist in playlists.EnumerateArray())
+    {
+        PlaylistData currentPlaylist = new();
+        currentPlaylist.Id = playlist.GetProperty("id").GetString() ?? "";
+        currentPlaylist.Name = playlist.GetProperty("name").GetString() ?? "";
+        var image = playlist.GetProperty("images")[0];
+        currentPlaylist.ImgUrl = image.GetProperty("url").GetString() ?? "";
 
-    return profileElement;    
+        playlistDatas.Add(currentPlaylist);
+    }
+
+    return playlistDatas;
+
+    /*
+    What I want to filter out:
+    Id
+    Image
+    Name
+    URI ?
+    */
 });
 
 
@@ -454,10 +458,6 @@ app.MapGet("/get-user-requests/{user}", (string user) =>
 
     if (!PlaylistManager.RequestedSongs.ContainsKey(user))
     {
-        foreach(var users in PlaylistManager.RequestedSongs)
-        {
-            Console.WriteLine(users.Key);
-        }
         return Results.Json(new { statusCode = "User Not found" });
     }
     return Results.Json(PlaylistManager.RequestedSongs[user].OrderBy(s => s.timeRequested));
@@ -547,4 +547,20 @@ public class SongData
     public string uri { get; set; }
     public DateTime timeRequested { get; set; }
     public int requestCount => PlaylistManager.getSongRequestCount(id);
+}
+
+public class PlaylistData
+{
+    public string Id {get; set;}
+    public string Name {get; set;}
+    public string ImgUrl {get; set;}
+    
+
+    /*
+    What I want to filter out:
+    Id
+    Image
+    Name
+    URI ?
+    */
 }

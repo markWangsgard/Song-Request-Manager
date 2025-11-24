@@ -78,3 +78,9 @@ export const getSettings = async () => {
   const settings = await response.json();
   return settings;
 };
+
+export const getPlaylists = async () => {
+  const response = await fetch(`${myApiUrl}/me/playlists`)
+  const playlists = await response.json();
+  return playlists;
+};
