@@ -25,13 +25,15 @@ app.UseCors(x => x.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
 
 var client = new HttpClient();
 string accessToken = "";
+DateTime accessTokenExpiresAt = DateTime.MinValue;
 string userAccessToken = "";
 string userRefreshToken = "";
 
 
 async Task<string> AccessToken()
 {
-    if (accessToken == "")
+    // Request a new token if missing or expired (with a small buffer)
+    if (string.IsNullOrWhiteSpace(accessToken) || DateTime.UtcNow >= accessTokenExpiresAt.AddSeconds(-30))
     {
         try
         {
@@ -50,15 +52,33 @@ async Task<string> AccessToken()
             var content = await response.Content.ReadAsStringAsync();
             if (!response.IsSuccessStatusCode)
             {
+                // clear on failure
+                accessToken = "";
+                accessTokenExpiresAt = DateTime.MinValue;
                 return "";
             }
 
             var doc = JsonDocument.Parse(content);
             accessToken = doc.RootElement.GetProperty("access_token").GetString() ?? "";
+
+            // set expiry based on expires_in if provided
+            if (doc.RootElement.TryGetProperty("expires_in", out JsonElement expiresElem) && expiresElem.ValueKind == JsonValueKind.Number)
+            {
+                var expiresIn = expiresElem.GetInt32();
+                accessTokenExpiresAt = DateTime.UtcNow.AddSeconds(expiresIn);
+            }
+            else
+            {
+                // default to 1 hour if server doesn't provide expires_in
+                accessTokenExpiresAt = DateTime.UtcNow.AddMinutes(60);
+            }
+
             return accessToken;
         }
         catch
         {
+            accessToken = "";
+            accessTokenExpiresAt = DateTime.MinValue;
             return "";
         }
     }
@@ -67,6 +87,7 @@ async Task<string> AccessToken()
         return accessToken;
     }
 }
+
 
 SongData? filterSongData(JsonElement jsonObject)
 {
@@ -137,12 +158,19 @@ SongData? filterSongData(JsonElement jsonObject)
         }
     }
 
+    string Uri = "Unknown";
+    if (jsonObject.TryGetProperty("uri", out JsonElement uriElem) && uriElem.ValueKind != JsonValueKind.Null)
+    {
+        Uri = uriElem.GetString() ?? "Unknown";
+    }
+
     SongData songData = new()
     {
         id = id,
         trackName = trackName,
         artistName = artistName,
         imgURL = imgURL,
+        uri = Uri,
         timeRequested = DateTime.Now
     };
     return songData;
@@ -228,26 +256,73 @@ app.MapGet("/callback", async (string code, string state) =>
     var doc = JsonDocument.Parse(content);
     userAccessToken = doc.RootElement.GetProperty("access_token").GetString() ?? "";
     userRefreshToken = doc.RootElement.GetProperty("refresh_token").GetString() ?? "";
+
+    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userAccessToken);
+
+    var responseMe = client.GetAsync("https://api.spotify.com/v1/me/");
+    var responseMessage = await responseMe;
+    var profileContent = await responseMessage.Content.ReadAsStringAsync();
+    var profileElement = JsonSerializer.Deserialize<JsonElement>(profileContent);
+
+    DateTime expirationTime;
+    if (profileElement.TryGetProperty("expires_in", out JsonElement expiresElem) && expiresElem.ValueKind == JsonValueKind.Number)
+    {
+        var expiresIn = expiresElem.GetInt32();
+        expirationTime = DateTime.UtcNow.AddSeconds(expiresIn);
+    }
+    else
+    {
+        // default to 1 hour if server doesn't provide expires_in
+        expirationTime = DateTime.UtcNow.AddMinutes(60);
+    }
+
+    User newUser = new()
+    {
+        displayName = profileElement.GetProperty("display_name").GetString() ?? "",
+        email = profileElement.GetProperty("email").GetString() ?? "",
+        userAccessToken = userAccessToken,
+        userRefreshToken = userRefreshToken,
+        accessTokenExpiresAt = expirationTime
+    };
+
+    PlaylistManager.settings.currentUser = newUser;
+
     return Results.Redirect(state);
 });
 
 app.MapGet("/me", async () =>
 {
-    accessToken = await AccessToken();
+    // accessToken = await AccessToken();
+    // client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userAccessToken);
+    // 
+    // var response = client.GetAsync("https://api.spotify.com/v1/me/");
+    // var responseMessage = await response;
+    // var profileContent = await responseMessage.Content.ReadAsStringAsync();
+    // var profileElement = JsonSerializer.Deserialize<JsonElement>(profileContent);
+    // 
+    // var content = JsonSerializer.Serialize(new
+    // {
+    // profile = profileElement,
+    // userAccessToken,
+    // userRefreshToken
+    // });
+    // return Results.Content(content, "application/json");
+
+    return PlaylistManager.settings.currentUser;
+});
+
+app.MapGet("/m2", async () =>
+{
     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userAccessToken);
 
-    var response = client.GetAsync("https://api.spotify.com/v1/me/");
-    var responseMessage = await response;
+    var responseMe = client.GetAsync("https://api.spotify.com/v1/me/");
+    var responseMessage = await responseMe;
     var profileContent = await responseMessage.Content.ReadAsStringAsync();
     var profileElement = JsonSerializer.Deserialize<JsonElement>(profileContent);
-    var content = JsonSerializer.Serialize(new
-    {
-        profile = profileElement,
-        userAccessToken,
-        userRefreshToken
-    });
-    return Results.Content(content, "application/json");
+
+    return profileElement;    
 });
+
 
 
 
@@ -343,13 +418,13 @@ app.MapGet("/remove-song/{user}/{songId}", (string user, string songId) =>
     int index;
     SongData song;
 
-        song = PlaylistManager.RequestedSongs[user].Find(s => s.id == songId);
-        PlaylistManager.RequestedSongs[user].Remove(song);
+    song = PlaylistManager.RequestedSongs[user].Find(s => s.id == songId);
+    PlaylistManager.RequestedSongs[user].Remove(song);
 
-        if (PlaylistManager.RequestedSongs[user].Count() <= 0)
-        {
-            PlaylistManager.RequestedSongs.Remove(user);
-        }
+    if (PlaylistManager.RequestedSongs[user].Count() <= 0)
+    {
+        PlaylistManager.RequestedSongs.Remove(user);
+    }
 
     if (PlaylistManager.getSongRequestCount(songId) == 0)
     {
@@ -379,6 +454,10 @@ app.MapGet("/get-user-requests/{user}", (string user) =>
 
     if (!PlaylistManager.RequestedSongs.ContainsKey(user))
     {
+        foreach(var users in PlaylistManager.RequestedSongs)
+        {
+            Console.WriteLine(users.Key);
+        }
         return Results.Json(new { statusCode = "User Not found" });
     }
     return Results.Json(PlaylistManager.RequestedSongs[user].OrderBy(s => s.timeRequested));
@@ -389,11 +468,35 @@ app.MapGet("/requested-songs", async () =>
     return PlaylistManager.AllSongs.OrderBy(s => s.requestCount).Reverse();
 });
 
+app.MapPost("/store-settings", (Settings settings) =>
+{
+    PlaylistManager.settings.currentUser = settings.currentUser;
+    PlaylistManager.settings.currentPlaylist = settings.currentPlaylist;
+    PlaylistManager.settings.numbOfAllowedRequests = settings.numbOfAllowedRequests;
+    PlaylistManager.settings.allowRepeats = settings.allowRepeats;
+    PlaylistManager.settings.autoAdd = settings.autoAdd;
+
+    foreach (var day in settings.selectedDays)
+    {
+        PlaylistManager.settings.selectedDays[day.Key] = day.Value;
+    }
+
+    PlaylistManager.settings.autoAddTime = settings.autoAddTime;
+
+    return Results.Ok(PlaylistManager.settings);
+});
+app.MapGet("/get-settings", () =>
+{
+    return PlaylistManager.settings;
+});
+
 app.Run();
 
 public static class PlaylistManager
 {
     public static Dictionary<string, List<SongData>> RequestedSongs { get; set; } = new Dictionary<string, List<SongData>>();
+    // public static Dictionary<string, Settings> UserSettings = new();
+    public static Settings settings = new Settings();
     public static List<SongData> AllSongs { get; set; } = new();
     public static int getSongRequestCount(string songID)
     {
@@ -406,12 +509,42 @@ public static class PlaylistManager
     }
 }
 
+public class Settings
+{
+    public User currentUser { get; set; }
+    public string currentPlaylist { get; set; } = "No Playlist";
+    public int numbOfAllowedRequests { get; set; } = 3;
+    public bool allowRepeats { get; set; } = true;
+    public bool autoAdd { get; set; } = false;
+    public Dictionary<string, bool> selectedDays { get; set; } = new()
+    {
+        {"monday", false},
+        {"tuesday", false},
+        {"wednesday", true},
+        {"thursday", false},
+        {"friday", false},
+        {"saturday", false},
+        {"sunday", false},
+    };
+    public string autoAddTime { get; set; } = "";
+}
+
+public class User
+{
+    public string displayName { get; set; }
+    public string email { get; set; }
+    public string userAccessToken { get; set; }
+    public string userRefreshToken { get; set; }
+    public DateTime accessTokenExpiresAt { get; set; }
+}
+
 public class SongData
 {
     public string id { get; set; }
     public string trackName { get; set; }
     public string artistName { get; set; }
     public string imgURL { get; set; }
+    public string uri { get; set; }
     public DateTime timeRequested { get; set; }
     public int requestCount => PlaylistManager.getSongRequestCount(id);
 }

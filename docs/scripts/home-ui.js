@@ -1,5 +1,5 @@
-import { getRequestedSongs, searchSongs } from "./service.js";
-import { requestSong } from "./domain.js";
+import { getRequestedSongs, getUserRequests, searchSongs } from "./service.js";
+import { requestSong, userID } from "./domain.js";
 
 const searchBarElement = document.getElementById("search");
 const resultsContainer = document.getElementById("results");
@@ -28,20 +28,6 @@ const displaySongs = async (searching, query = "") => {
   resultsContainer.replaceChildren();
 
   results.forEach((result) => {
-    /*
-            <figure class="d-flex">
-              <img
-                src="https://i.scdn.co/image/ab67616d00004851f00a1acf866539632b187ea0"
-                alt=""
-              />
-              <figcaption class="ms-3">
-                <h3>Die A Happy Man</h3>
-                <h4>Thomas Rhett</h4>
-              </figcaption>
-            </figure>
-            */
-
-    // const resultElement = document.createElement("div");
     const resultElement = document.createElement("figure");
     resultElement.classList.add("d-flex");
     resultElement.classList.add("justify-content-sm-center");
@@ -51,25 +37,12 @@ const displaySongs = async (searching, query = "") => {
       resultElement.classList.add("me-4");
       resultElement.classList.add("bg-secondary");
       resultElement.classList.add("rounded");
-// 
-    // resultElement.classList.add(
-      // "d-flex",
-      // "justify-content-center",
-      // "p-3",
-      // "m-2",
-      // "rounded"
-    // );
-    // resultElement.style.maxWidth = "400px";
 
     const imgElement = document.createElement("img");
     imgElement.src = result.imgURL;
     imgElement.alt = result.trackName;
-    // imgElement.classList.add("img-fluid");
-    // imgElement.style.objectFit = "contain";
 
-    // const textContainer = document.createElement("div");
     const textContainer = document.createElement("figcaption");
-    // textContainer.classList.add("ms-2", "text-container");
     textContainer.classList.add("ms-3");
     textContainer.style = "min-width: 0;";
 
@@ -85,19 +58,6 @@ const displaySongs = async (searching, query = "") => {
         result.requestCount === 1 ? "time" : "times"
       }`;
     }
-
-    // const updateImgHeight = () => {
-      // imgElement.style.maxHeight = `${textContainer.offsetHeight}px`;
-    // };
-
-    // updateImgHeight();
-
-    // if (window.ResizeObserver) {
-      // const ro = new ResizeObserver(updateImgHeight);
-      // ro.observe(textContainer);
-    // } else {
-      // window.addEventListener("resize", updateImgHeight);
-    // }
 
     textContainer.appendChild(titleElement);
     textContainer.appendChild(artistElement);
@@ -135,4 +95,7 @@ const displaySongs = async (searching, query = "") => {
   });
 };
 
-displaySongs(true, "travlin");
+// displaySongs(true, "travlin");
+displaySongs(false);
+
+console.log(await getUserRequests(userID));

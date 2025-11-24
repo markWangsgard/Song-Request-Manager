@@ -2,7 +2,6 @@ import {
   allowRepeats,
   autoAdd,
   autoAddTime,
-  currentUser,
   numbOfAllowedRequests,
   selectedDays,
   setAllowRepeats,
@@ -17,8 +16,10 @@ import {
   setNumbOfAllowedRequests,
   setUser,
   setAutoAddTime,
+  loadSettingsFromApi,
+  currentUser,
 } from "./constants.js";
-import { getMe, login } from "./service.js";
+import { getMe, getSettings, login, setSettings } from "./service.js";
 
 const loginButton = document.getElementById("signIn");
 const selectPlaylistButton = document.getElementById("selectPlaylist");
@@ -94,11 +95,15 @@ const addAllEventListeners = async () => {
 
 const updateUser = async () => {
   const user = await getMe();
-  if (user) {
-    userNameElement.textContent = `Signed in as ${user.profile.display_name}`;
+  if (user !== null) {
+    userNameElement.classList.remove("visually-hidden")
+    userNameElement.textContent = `Signed in as ${user.displayName}`;
     const loginButton = document.getElementById("signIn");
     loginButton.textContent = "Sign Out";
     setUser(user);
+  }
+  else {
+    userNameElement.classList.add("visually-hidden")
   }
 };
 
@@ -129,4 +134,6 @@ const loadSettings = () => {
 };
 
 addAllEventListeners();
+await loadSettingsFromApi();
 loadSettings();
+ await setSettings();

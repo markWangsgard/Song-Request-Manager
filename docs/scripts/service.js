@@ -1,4 +1,13 @@
-import { myApiUrl } from "./constants.js";
+import {
+  allowRepeats,
+  autoAdd,
+  autoAddTime,
+  currentPlaylist,
+  currentUser,
+  myApiUrl,
+  numbOfAllowedRequests,
+  selectedDays,
+} from "./constants.js";
 
 // const myApiUrl = "https://soutenu-chan-unscheming.ngrok-free.dev/";
 
@@ -26,11 +35,13 @@ export const requestSongAPI = async (userID, songID) => {
 };
 
 export const RemoveSong = async (userID, songID) => {
-    await fetch(`${myApiUrl}/remove-song/${userID}/${songID}`);
+  await fetch(`${myApiUrl}/remove-song/${userID}/${songID}`);
 };
 
 export const login = async () => {
-  window.location = `${myApiUrl}/login?returnTo=${encodeURIComponent(window.location.href)}`
+  window.location = `${myApiUrl}/login?returnTo=${encodeURIComponent(
+    window.location.href
+  )}`;
   const response = await fetch(`${myApiUrl}/me`);
   const user = await response.json();
   return user;
@@ -40,4 +51,30 @@ export const getMe = async () => {
   const response = await fetch(`${myApiUrl}/me`);
   const user = await response.json();
   return user;
-}
+};
+
+export const setSettings = async () => {
+  const settings = {
+    currentUser: currentUser,
+    currentPlaylist: currentPlaylist,
+    numbOfAllowedRequests: numbOfAllowedRequests,
+    allowRepeats: allowRepeats,
+    autoAdd: autoAdd,
+    selectedDays: selectedDays,
+    autoAddTime: autoAddTime,
+  };
+  const jsonString = JSON.stringify(settings);
+  await fetch(`${myApiUrl}/store-settings`, {
+    body: JSON.stringify(settings),
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+export const getSettings = async () => {
+  const response = await fetch(`${myApiUrl}/get-settings`);
+  const settings = await response.json();
+  return settings;
+};
