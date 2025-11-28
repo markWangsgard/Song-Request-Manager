@@ -19,6 +19,8 @@ searchBarElement.addEventListener("input", async (event) => {
 });
 
 const displaySongs = async (searching, query = "") => {
+  await loadSettingsFromApi();
+
   document.getElementById("SectionHeader").textContent = searching
     ? `Search Results for "${query}"`
     : `Requested Songs`;
@@ -76,7 +78,6 @@ const displaySongs = async (searching, query = "") => {
     textContainer.appendChild(artistElement);
     resultElement.appendChild(imgElement);
     resultElement.appendChild(textContainer);
-    console.log(currentPlaylist);
     if (currentPlaylist !== null) {
       resultElement.appendChild(addIconElement);
     }
@@ -130,5 +131,4 @@ const displaySongs = async (searching, query = "") => {
 };
 
 // displaySongs(true, "travlin");
-loadSettingsFromApi();
 displaySongs(false);
