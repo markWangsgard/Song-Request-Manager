@@ -226,7 +226,7 @@ app.MapGet("/login", (string returnTo = "http://127.0.0.1:5001/me") =>
               $"&response_type=code" +
               $"&redirect_uri={redirectUri}" +
               $"&state={state}" +
-              $"&scope=user-read-private%20user-read-email";
+              $"&scope=user-read-private%20user-read-email%20playlist-modify-public%20playlist-modify-private%20playlist-read-private%20playlist-read-collaborative";
 
     return Results.Redirect(url);
 });
@@ -447,9 +447,27 @@ app.MapGet("/clear-requests", () =>
     return Results.Json(new { status = "cleared" });
 });
 
-app.MapGet("/playlist/{playlistId}/add-song/{songId}", (string playlistId, string songId) =>
+app.MapGet("/playlist/{playlistId}/add-song/{songId}", async (string playlistId, string songId) =>
 {
-    //add function to add song to playlist
+        var song = await GetSong(songId);
+        var trackUri = song.uri;
+        var token = PlaylistManager.settings.currentUser.userAccessToken;
+
+        using var client = new HttpClient();
+
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+
+        var url = $"https://api.spotify.com/v1/playlists/{playlistId}/tracks";
+
+        var json = $"{{\"uris\": [\"{trackUri}\"]}}";
+        var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+        var response = await client.PostAsync(url, content);
+        string responseBody = await response.Content.ReadAsStringAsync();
+
+        // Console.WriteLine("Response: " + responseBody);
+
+    return responseBody;
 });
 
 
