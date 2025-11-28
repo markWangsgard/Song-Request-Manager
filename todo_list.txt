@@ -1,10 +1,13 @@
 Todo:
 
-* select Playlist
-
-* make admin recommendations viewer
 * Add songs to Playlist
+    * activate add button (remove access once added)
+        * Clear added songs once playlist changes?
+
+* Handle error w/ access token
 
 * real time updates
+
+* refresh_token
 
 * access anywhere (localhost.run ??)

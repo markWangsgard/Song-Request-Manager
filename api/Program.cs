@@ -29,6 +29,7 @@ string accessToken = "";
 DateTime accessTokenExpiresAt = DateTime.MinValue;
 string userAccessToken = "";
 string userRefreshToken = "";
+var periodicTimer = new PeriodicTimer(TimeSpan.FromMinutes(55));
 
 
 async Task<string> AccessToken()
@@ -207,6 +208,36 @@ async Task<SongData?> GetSong(string id)
 }
 
 
+async Task RefreshAccessTokenPerodiclly()
+{
+    while (await periodicTimer.WaitForNextTickAsync())
+    {
+        var client = new HttpClient();
+        // ACCEPT header
+        client.DefaultRequestHeaders.Accept.Add(
+             new MediaTypeWithQualityHeaderValue("application/json"));
+        var request = new HttpRequestMessage(HttpMethod.Post, "https://accounts.spotify.com/api/token");
+        // CONTENT-TYPE header
+        request.Content = new StringContent("{\"name\":\"John Doe\",\"age\":33}",
+                             Encoding.UTF8, "application/json");
+        var clientId = Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_ID");
+        var clientSecret = Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_SECRET");
+        var auth = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
+        request.Headers.Authorization = new AuthenticationHeaderValue("Basic", auth);
+
+        request.Content = new FormUrlEncodedContent(new[]
+        {
+        new KeyValuePair<string, string>("grant_type", "refresh_token"),
+        new KeyValuePair<string, string>("refresh_token", PlaylistManager.settings.currentUser.userRefreshToken),
+        new KeyValuePair<string, string>("client_id", clientId)
+    });
+        var response = await client.SendAsync(request);
+        var JsonObjectResponse = JsonSerializer.Deserialize<JsonObject>(await response.Content.ReadAsStringAsync());
+        JsonObjectResponse.TryGetPropertyValue("access_token", out JsonNode jsonNode);
+        PlaylistManager.settings.currentUser.userAccessToken = jsonNode.ToString();
+    }
+}
+
 
 app.MapGet("/", async () =>
 {
@@ -283,10 +314,11 @@ app.MapGet("/callback", async (string code, string state) =>
         email = profileElement.GetProperty("email").GetString() ?? "",
         userAccessToken = userAccessToken,
         userRefreshToken = userRefreshToken,
-        accessTokenExpiresAt = expirationTime
     };
 
     PlaylistManager.settings.currentUser = newUser;
+
+    RefreshAccessTokenPerodiclly();
 
     return Results.Redirect(state);
 });
@@ -298,9 +330,9 @@ app.MapGet("/me", async () =>
 
 app.MapGet("/me/playlists", async () =>
 {
-    if (PlaylistManager.settings.currentUser.userAccessToken == null || PlaylistManager.settings.currentUser.userAccessToken == "" || PlaylistManager.settings.currentUser.accessTokenExpiresAt < DateTime.Now)
+    if (PlaylistManager.settings.currentUser.userAccessToken == null || PlaylistManager.settings.currentUser.userAccessToken == "")
     {
-        return null;
+        await AccessToken();
     }
 
     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userAccessToken);
@@ -449,23 +481,23 @@ app.MapGet("/clear-requests", () =>
 
 app.MapGet("/playlist/{playlistId}/add-song/{songId}", async (string playlistId, string songId) =>
 {
-        var song = await GetSong(songId);
-        var trackUri = song.uri;
-        var token = PlaylistManager.settings.currentUser.userAccessToken;
+    var song = await GetSong(songId);
+    var trackUri = song.uri;
+    var token = PlaylistManager.settings.currentUser.userAccessToken;
 
-        using var client = new HttpClient();
+    using var client = new HttpClient();
 
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
+    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
 
-        var url = $"https://api.spotify.com/v1/playlists/{playlistId}/tracks";
+    var url = $"https://api.spotify.com/v1/playlists/{playlistId}/tracks";
 
-        var json = $"{{\"uris\": [\"{trackUri}\"]}}";
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
+    var json = $"{{\"uris\": [\"{trackUri}\"]}}";
+    var content = new StringContent(json, Encoding.UTF8, "application/json");
 
-        var response = await client.PostAsync(url, content);
-        string responseBody = await response.Content.ReadAsStringAsync();
+    var response = await client.PostAsync(url, content);
+    string responseBody = await response.Content.ReadAsStringAsync();
 
-        // Console.WriteLine("Response: " + responseBody);
+    // Console.WriteLine("Response: " + responseBody);
 
     return responseBody;
 });
@@ -559,7 +591,7 @@ public class User
     public string email { get; set; }
     public string userAccessToken { get; set; }
     public string userRefreshToken { get; set; }
-    public DateTime accessTokenExpiresAt { get; set; }
+    // public DateTime accessTokenExpiresAt { get; set; }
 }
 
 public class SongData
