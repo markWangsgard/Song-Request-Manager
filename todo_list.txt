@@ -8,6 +8,4 @@ Todo:
 
 * real time updates
 
-* refresh_token
-
 * access anywhere (localhost.run ??)
