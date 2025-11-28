@@ -97,3 +97,4 @@ const displaySongs = async (searching, query = "") => {
 
 // displaySongs(true, "travlin");
 displaySongs(false);
+

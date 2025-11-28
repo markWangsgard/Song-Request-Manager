@@ -8,6 +8,7 @@ using Sprache;
 using System.Text.Json.Serialization;
 using System.Text.Json.Nodes;
 using System;
+using Microsoft.AspNetCore.Mvc;
 
 Env.Load();
 var builder = WebApplication.CreateBuilder(args);
@@ -295,7 +296,13 @@ app.MapGet("/me", async () =>
     return PlaylistManager.settings.currentUser;
 });
 
-app.MapGet("/me/playlists", async () => {
+app.MapGet("/me/playlists", async () =>
+{
+    if (PlaylistManager.settings.currentUser.userAccessToken == null)
+    {
+        return null;
+    }
+
     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userAccessToken);
 
     var response = client.GetAsync("https://api.spotify.com/v1/me/playlists");
@@ -303,28 +310,22 @@ app.MapGet("/me/playlists", async () => {
     var content = response.Result.Content.ReadAsStringAsync().Result;
     var doc = JsonDocument.Parse(content);
     var playlists = doc.RootElement.GetProperty("items");
-    
+
     List<PlaylistData> playlistDatas = new();
     foreach (var playlist in playlists.EnumerateArray())
     {
         PlaylistData currentPlaylist = new();
         currentPlaylist.Id = playlist.GetProperty("id").GetString() ?? "";
         currentPlaylist.Name = playlist.GetProperty("name").GetString() ?? "";
-        var image = playlist.GetProperty("images")[0];
+        var images = playlist.GetProperty("images");
+        // Console.WriteLine(images);
+        var image = images[images.GetArrayLength() - 1];
         currentPlaylist.ImgUrl = image.GetProperty("url").GetString() ?? "";
 
         playlistDatas.Add(currentPlaylist);
     }
 
     return playlistDatas;
-
-    /*
-    What I want to filter out:
-    Id
-    Image
-    Name
-    URI ?
-    */
 });
 
 
@@ -512,7 +513,7 @@ public static class PlaylistManager
 public class Settings
 {
     public User currentUser { get; set; }
-    public string currentPlaylist { get; set; } = "No Playlist";
+    public PlaylistData currentPlaylist { get; set; }
     public int numbOfAllowedRequests { get; set; } = 3;
     public bool allowRepeats { get; set; } = true;
     public bool autoAdd { get; set; } = false;
@@ -551,16 +552,7 @@ public class SongData
 
 public class PlaylistData
 {
-    public string Id {get; set;}
-    public string Name {get; set;}
-    public string ImgUrl {get; set;}
-    
-
-    /*
-    What I want to filter out:
-    Id
-    Image
-    Name
-    URI ?
-    */
+    public string Id { get; set; }
+    public string Name { get; set; }
+    public string ImgUrl { get; set; }
 }

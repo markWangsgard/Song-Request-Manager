@@ -55,13 +55,13 @@ export const getMe = async () => {
 
 export const setSettings = async () => {
   const settings = {
-    currentUser: currentUser,
-    currentPlaylist: currentPlaylist,
-    numbOfAllowedRequests: numbOfAllowedRequests,
-    allowRepeats: allowRepeats,
-    autoAdd: autoAdd,
-    selectedDays: selectedDays,
-    autoAddTime: autoAddTime,
+    currentUser,
+    currentPlaylist,
+    numbOfAllowedRequests,
+    allowRepeats,
+    autoAdd,
+    selectedDays,
+    autoAddTime,
   };
   const jsonString = JSON.stringify(settings);
   await fetch(`${myApiUrl}/store-settings`, {
