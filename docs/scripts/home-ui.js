@@ -31,6 +31,7 @@ const displaySongs = async (searching, query = "") => {
     const resultElement = document.createElement("figure");
     resultElement.classList.add("d-flex");
     resultElement.classList.add("justify-content-sm-center");
+    resultElement.classList.add("align-items-center");
       resultElement.classList.add("ms-4");
       resultElement.classList.add("p-3");
       resultElement.classList.add("responsive-width");
@@ -39,6 +40,8 @@ const displaySongs = async (searching, query = "") => {
       resultElement.classList.add("rounded");
 
     const imgElement = document.createElement("img");
+    imgElement.style.width = "75px";
+    imgElement.style.height = "75px";
     imgElement.src = result.imgURL;
     imgElement.alt = result.trackName;
 

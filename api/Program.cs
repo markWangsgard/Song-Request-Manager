@@ -447,6 +447,11 @@ app.MapGet("/clear-requests", () =>
     return Results.Json(new { status = "cleared" });
 });
 
+app.MapGet("/playlist/{playlistId}/add-song/{songId}", (string playlistId, string songId) =>
+{
+    //add function to add song to playlist
+});
+
 
 
 
