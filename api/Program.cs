@@ -298,7 +298,7 @@ app.MapGet("/me", async () =>
 
 app.MapGet("/me/playlists", async () =>
 {
-    if (PlaylistManager.settings.currentUser.userAccessToken == null)
+    if (PlaylistManager.settings.currentUser.userAccessToken == null || PlaylistManager.settings.currentUser.userAccessToken == "" || PlaylistManager.settings.currentUser.accessTokenExpiresAt < DateTime.Now)
     {
         return null;
     }
