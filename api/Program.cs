@@ -497,7 +497,7 @@ app.MapGet("/playlist/{playlistId}/add-song/{songId}", async (string playlistId,
     var response = await client.PostAsync(url, content);
     string responseBody = await response.Content.ReadAsStringAsync();
 
-    // Console.WriteLine("Response: " + responseBody);
+    Console.WriteLine("Response: " + responseBody);
 
     return responseBody;
 });

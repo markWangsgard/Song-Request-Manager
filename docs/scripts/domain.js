@@ -1,7 +1,7 @@
 import { allowRepeats, loadSettingsFromApi, numbOfAllowedRequests } from "./constants.js";
-import { getUserRequests, RemoveSong, requestSongAPI } from "./service.js";
+import { addSongToPlaylistAPI, getUserRequests, RemoveSong, requestSongAPI } from "./service.js";
 export let userID = window.localStorage.getItem("userID");
-
+export const songsAddedToPlaylist = [];
 if (!userID) {
   userID = crypto.randomUUID();
   window.localStorage.setItem("userID", userID);
@@ -40,4 +40,9 @@ export const requestSong = async (songID) => {
       await requestSongAPI(userID, songID);
     }
   }
+};
+
+export const addSongToPlaylist = async (playlist, song) => {
+  songsAddedToPlaylist.push(song.id);
+  addSongToPlaylistAPI(playlist.id, song.id);
 };

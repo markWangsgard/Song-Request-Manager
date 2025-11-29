@@ -84,3 +84,7 @@ export const getPlaylists = async () => {
   const playlists = await response.json();
   return playlists;
 };
+
+export const addSongToPlaylistAPI = async (playlistId, songId) => {
+  const response = await fetch(`${myApiUrl}/playlist/${playlistId}/add-song/${songId}`)
+};

@@ -1,6 +1,6 @@
 import { getRequestedSongs, getUserRequests, searchSongs } from "./service.js";
-import { requestSong, userID } from "./domain.js";
-import { currentPlaylist, loadSettingsFromApi } from "./constants.js";
+import { addSongToPlaylist, requestSong, songsAddedToPlaylist, userID } from "./domain.js";
+import { currentPlaylist, currentUser, loadSettingsFromApi } from "./constants.js";
 
 const searchBarElement = document.getElementById("search");
 const resultsContainer = document.getElementById("results");
@@ -69,8 +69,9 @@ const displaySongs = async (searching, query = "") => {
       }`;
     }
 
+    const addOrCheck = songsAddedToPlaylist.includes(result.id) ? "check" : "add-icon";
     const addIconElement = document.createElement("img");
-    addIconElement.src = "images/add-icon-primary.svg";
+    addIconElement.src = `images/${addOrCheck}-primary.svg`;
     addIconElement.alt = "Add Song To Playlist";
     addIconElement.style.width = "50px";
 
@@ -92,27 +93,37 @@ const displaySongs = async (searching, query = "") => {
       resultElement.classList.remove("bg-secondary");
       resultElement.classList.add("bg-primary");
       resultElement.classList.add("text-black");
-      addIconElement.src = "images/add-icon-body.svg";
+      addIconElement.src = `images/${addOrCheck}-body.svg`;
     });
     resultElement.addEventListener("mouseleave", () => {
       resultElement.classList.add("bg-secondary");
       resultElement.classList.remove("bg-primary");
       resultElement.classList.remove("text-black");
-      addIconElement.src = "images/add-icon-primary.svg";
+      addIconElement.src = `images/${addOrCheck}-primary.svg`;
     });
 
     addIconElement.addEventListener("mouseenter", () => {
       resultElement.classList.add("bg-body");
       resultElement.classList.remove("bg-primary");
       resultElement.classList.remove("text-black");
-      addIconElement.src = "images/add-icon-primary.svg";
+      addIconElement.src = `images/${addOrCheck}-primary.svg`;
     });
     addIconElement.addEventListener("mouseleave", () => {
       resultElement.style.cursor = "pointer";
       resultElement.classList.remove("bg-body");
       resultElement.classList.add("bg-primary");
       resultElement.classList.add("text-black");
-      addIconElement.src = "images/add-icon-body.svg";
+      addIconElement.src = `images/${addOrCheck}-body.svg`;
+    });
+
+    addIconElement.addEventListener("click", async () => {
+      if (addOrCheck === "add-icon" && currentPlaylist !== null && currentUser !== null)
+      {
+        await addSongToPlaylist(currentPlaylist, result);
+        displaySongs();
+        console.log("Added Song");
+        console.log(songsAddedToPlaylist);
+      }
     });
 
     resultElement.addEventListener("click", async () => {

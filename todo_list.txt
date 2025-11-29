@@ -8,4 +8,4 @@ Todo:
 
 * real time updates
 
-* access anywhere (localhost.run ??)
+* access anywhere
