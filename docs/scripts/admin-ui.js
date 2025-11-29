@@ -76,6 +76,7 @@ const displaySongs = async (searching, query = "") => {
 
     const addOrCheck = songsAddedToPlaylist.includes(result.id) ? "check" : "add-icon";
     const addIconElement = document.createElement("img");
+    addIconElement.id = `add-or-check-${result.id}`
     addIconElement.src = `images/${addOrCheck}-primary.svg`;
     addIconElement.alt = "Add Song To Playlist";
     addIconElement.style.width = "50px";
@@ -131,13 +132,16 @@ const displaySongs = async (searching, query = "") => {
       }
     });
 
-    resultElement.addEventListener("click", async () => {
-      searchBarElement.value = "";
-
-      await requestSong(result.id);
-      dispatchEvent(updateRequestedSongs);
-
-      displaySongs(false);
+    resultElement.addEventListener("click", async (e) => {
+      if (e.target.id !== `add-or-check-${result.id}`)
+      {
+        searchBarElement.value = "";
+        
+        await requestSong(result.id);
+        dispatchEvent(updateRequestedSongs);
+        
+        displaySongs(false);
+      }
     });
 
     resultElement.addEventListener("updateRequestedSongs", () => {
