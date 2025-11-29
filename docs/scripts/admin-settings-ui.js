@@ -44,11 +44,20 @@ const saturdayCheckboxElement = document.getElementById("daySaturday");
 const fridayCheckboxElement = document.getElementById("dayFriday");
 const timePickerElement = document.getElementById("timePicker");
 const sundayCheckboxElement = document.getElementById("daySunday");
-const cancelChoicePlaylistButton = document.getElementById("CancelPlaylistSelect")
-const selectChoicePlaylistButton = document.getElementById("SelectPlaylistSelect")
+const cancelChoicePlaylistButton = document.getElementById(
+  "CancelPlaylistSelect"
+);
+const selectChoicePlaylistButton = document.getElementById(
+  "SelectPlaylistSelect"
+);
 let tempSelectedPlaylist = currentPlaylist;
 
 const addAllEventListeners = async () => {
+  const logoElement = document.getElementById("logo");
+  logoElement.addEventListener("click", () => {
+    window.location.href = "./admin.html";
+  });
+
   loginButton.addEventListener("click", async (e) => {
     e.preventDefault();
     await login();
@@ -119,7 +128,7 @@ const addAllEventListeners = async () => {
     bodyElement.classList.remove("no-scroll");
     updatePlaylist();
   });
-  
+
   selectChoicePlaylistButton.addEventListener("click", () => {
     const popupElement = document.getElementById("selectPlaylistContainer");
     popupElement.classList.add("d-none");
@@ -147,13 +156,13 @@ const updateUser = () => {
 };
 
 const updatePlaylist = () => {
-  const selectedPlaylistTextElement = document.getElementById("playlistSelectedText");
-  if (currentPlaylist !== null)
-  {
+  const selectedPlaylistTextElement = document.getElementById(
+    "playlistSelectedText"
+  );
+  if (currentPlaylist !== null) {
     selectedPlaylistTextElement.textContent = `Playlist selected: ${currentPlaylist.name}`;
-    selectedPlaylistTextElement.classList.remove("visually-hidden")
-  }
-  else {
+    selectedPlaylistTextElement.classList.remove("visually-hidden");
+  } else {
     selectedPlaylistTextElement.classList.add("visually-hidden");
   }
 };
@@ -219,27 +228,24 @@ const displayPlaylists = async () => {
       playlistElement.appendChild(playlistTextElement);
 
       playlistElement.addEventListener("mouseenter", () => {
-          playlistElement.style.cursor = "pointer";
-          playlistElement.classList.remove("bg-body");
-          playlistElement.classList.remove("bg-secondary");
-          playlistElement.classList.add("bg-primary");
-          playlistElement.classList.add("text-black");
+        playlistElement.style.cursor = "pointer";
+        playlistElement.classList.remove("bg-body");
+        playlistElement.classList.remove("bg-secondary");
+        playlistElement.classList.add("bg-primary");
+        playlistElement.classList.add("text-black");
       });
       playlistElement.addEventListener("mouseleave", () => {
-        if (tempSelectedPlaylist !== null && p.id === tempSelectedPlaylist.id)
-        {
+        if (tempSelectedPlaylist !== null && p.id === tempSelectedPlaylist.id) {
           playlistElement.classList.add("bg-secondary");
-        }
-        else {
+        } else {
           playlistElement.classList.add("bg-body");
         }
-          playlistElement.classList.remove("bg-primary");
-          playlistElement.classList.remove("text-black");
+        playlistElement.classList.remove("bg-primary");
+        playlistElement.classList.remove("text-black");
       });
 
       playlistElement.addEventListener("click", () => {
-        if (tempSelectedPlaylist !== null && p.id === tempSelectedPlaylist.id)
-        {
+        if (tempSelectedPlaylist !== null && p.id === tempSelectedPlaylist.id) {
           tempSelectedPlaylist = null;
           displayPlaylists();
           return;
