@@ -30,6 +30,7 @@ DateTime accessTokenExpiresAt = DateTime.MinValue;
 var periodicTimer = new PeriodicTimer(TimeSpan.FromMinutes(55));
 
 
+
 async Task<string> AccessToken()
 {
     // Request a new token if missing or expired (with a small buffer)
@@ -295,34 +296,38 @@ app.MapGet("/callback", async (string code, string state) =>
 
     var responseMe = client.GetAsync("https://api.spotify.com/v1/me/");
     var responseMessage = await responseMe;
-    var profileContent = await responseMessage.Content.ReadAsStringAsync();
-    var profileElement = JsonSerializer.Deserialize<JsonElement>(profileContent);
-
-    DateTime expirationTime;
-    if (profileElement.TryGetProperty("expires_in", out JsonElement expiresElem) && expiresElem.ValueKind == JsonValueKind.Number)
+    if (responseMessage.StatusCode.ToString() == "OK")
     {
-        var expiresIn = expiresElem.GetInt32();
-        expirationTime = DateTime.UtcNow.AddSeconds(expiresIn);
+        var profileContent = await responseMessage.Content.ReadAsStringAsync();
+
+        var profileElement = JsonSerializer.Deserialize<JsonElement>(profileContent);
+
+        DateTime expirationTime;
+        if (profileElement.TryGetProperty("expires_in", out JsonElement expiresElem) && expiresElem.ValueKind == JsonValueKind.Number)
+        {
+            var expiresIn = expiresElem.GetInt32();
+            expirationTime = DateTime.UtcNow.AddSeconds(expiresIn);
+        }
+        else
+        {
+            // default to 1 hour if server doesn't provide expires_in
+            expirationTime = DateTime.UtcNow.AddMinutes(60);
+        }
+
+        User newUser = new()
+        {
+            displayName = profileElement.GetProperty("display_name").GetString() ?? "",
+            email = profileElement.GetProperty("email").GetString() ?? "",
+            userAccessToken = userAccessToken,
+            userRefreshToken = userRefreshToken,
+            accessTokenExpiresAt = expirationTime
+        };
+
+        PlaylistManager.settings.currentUser = newUser;
+
+        RefreshAccessTokenPerodiclly();
+
     }
-    else
-    {
-        // default to 1 hour if server doesn't provide expires_in
-        expirationTime = DateTime.UtcNow.AddMinutes(60);
-    }
-
-    User newUser = new()
-    {
-        displayName = profileElement.GetProperty("display_name").GetString() ?? "",
-        email = profileElement.GetProperty("email").GetString() ?? "",
-        userAccessToken = userAccessToken,
-        userRefreshToken = userRefreshToken,
-        accessTokenExpiresAt = expirationTime
-    };
-
-    PlaylistManager.settings.currentUser = newUser;
-
-    RefreshAccessTokenPerodiclly();
-
     return Results.Redirect(state);
 });
 
@@ -545,8 +550,7 @@ app.MapGet("/requested-songs", async () =>
 
 app.MapPost("/store-settings", (Settings settings) =>
 {
-    List<string> acceptableEmails = new() { "mwangsgard25@gmail.com" };
-    if (acceptableEmails.Contains(settings.currentUser?.email))
+    if (PlaylistManager.settings.allowEdits)
     {
 
         PlaylistManager.settings.currentUser = settings.currentUser;
@@ -592,6 +596,8 @@ public static class PlaylistManager
 
 public class Settings
 {
+    List<string> acceptableEmails = new() { "mwangsgard25@gmail.com" };
+    public bool allowEdits { get { return acceptableEmails.Contains(currentUser?.email); } }
     public User currentUser { get; set; }
     public PlaylistData currentPlaylist { get; set; }
     public int numbOfAllowedRequests { get; set; } = 3;

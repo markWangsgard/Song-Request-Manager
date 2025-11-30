@@ -20,6 +20,7 @@ import {
   currentUser,
   currentPlaylist,
   setCurrentPlaylist,
+  allowEdits,
 } from "./constants.js";
 import { songsAddedToPlaylist } from "./domain.js";
 import { getPlaylists, login, setSettings, logout } from "./service.js";
@@ -139,19 +140,23 @@ const addAllEventListeners = async () => {
 
 const updateUser = () => {
   const user = currentUser;
+  const allSettingsElement = document.getElementById("allSettings");
   if (user !== null) {
     userNameElement.classList.remove("visually-hidden");
     userNameElement.textContent = `Signed in as ${user.displayName}`;
     const loginButton = document.getElementById("signIn");
     loginButton.textContent = "Sign Out";
+    if (allowEdits)
+    {
+      allSettingsElement.classList.remove("d-none");
+    }
     
-    selectPlaylistButton.disabled = false;
     setUser(user);
   } else {
     const loginButton = document.getElementById("signIn");
     loginButton.textContent = "Sign In";
-    selectPlaylistButton.disabled = true;
     userNameElement.classList.add("visually-hidden");
+    allSettingsElement.classList.add("d-none");
   }
 };
 

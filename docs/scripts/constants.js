@@ -37,7 +37,10 @@ export const loadSettingsFromApi = async () => {
   selectedDays.saturday = settings.selectedDays.saturday;
   selectedDays.sunday = settings.selectedDays.sunday;
   autoAddTime = settings.autoAddTime;
+  allowEdits = settings.allowEdits;
 };
+
+export let allowEdits = false;
 
 export const setUser = (user) => {
   currentUser = user;

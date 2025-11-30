@@ -38,180 +38,213 @@
         <h5 class="mt-3" id="userName">Signed in as ...</h5>
         <hr class="w-50" />
       </div>
-      <div class="d-flex flex-column align-items-center">
-        <h3>Select Playlist</h3>
-        <button disabled class="mt-3 btn btn-outline-primary" id="selectPlaylist">Select Playlist</button>
-        <h5 class="mt-3 visually-hidden" id="playlistSelectedText">Playlist selected: ...</h5>
-        <hr class="w-50" />
-      </div>
-
-
-
-      <div id="selectPlaylistContainer" style="--bs-bg-opacity: .75" class="d-none bg-black vw-100 vh-100 fixed-top d-flex justify-content-center align-items-center">
-        <div class="bg-body w-75 h-75 rounded-5 d-flex flex-column">
-          <h1 class="mt-4 vh-25">Choose Playlist</h1>
-          <div class="flex-grow h-100 overflow-auto" id="playlistList">
-            <div id="playlistExampleElement" class="bg-body rounded-5 p-3 m-3 d-flex justify-content-center align-items-center">
-              <img src="https://i.scdn.co/image/ab67616d00004851f00a1acf866539632b187ea0" alt="Country Music">
-              <h4 class="ms-4">Country Music</h4>
-            </div>
-            <div id="playlistExampleElement" class="rounded-5 p-3 m-3 d-flex justify-content-center align-items-center">
-              <img src="https://i.scdn.co/image/ab67616d00004851f00a1acf866539632b187ea0" alt="Country Music">
-              <h4 class="ms-4">Country Music</h4>
-            </div>
-          </div>
-          <div class="mb-4 d-flex justify-content-evenly">
-            <button id="CancelPlaylistSelect" class="btn btn-danger">Cancel</button>
-            <button id="SelectPlaylistSelect" class="btn btn-primary">Select</button>
-          </div>
+      <div id="allSettings" class="d-none">
+        <div class="d-flex flex-column align-items-center">
+          <h3>Select Playlist</h3>
+          <button
+            disabled
+            class="mt-3 btn btn-outline-primary"
+            id="selectPlaylist"
+          >
+            Select Playlist
+          </button>
+          <h5 class="mt-3 visually-hidden" id="playlistSelectedText">
+            Playlist selected: ...
+          </h5>
+          <hr class="w-50" />
         </div>
-      </div>
 
-
-      <div class="d-flex flex-column align-items-center">
-        <h3>Song Request Limit</h3>
-        <div class="d-flex justify-content-center mt-3 mb-2">
-          <label class="" for="requestLimit">Number of Songs: </label>
-          <input
-            class="ms-3 btn btn-outline-primary"
-            type="number"
-            name="requestLimit"
-            id="requestLimit"
-            min="1"
-            value="1"
-          />
-        </div>
-        <hr class="w-50" />
-      </div>
-      <div class="d-flex flex-column align-items-center">
-        <h3>Allow Repeats</h3>
-        <div class="mb-2">
-          <label class="switch">
-            <input type="checkbox" id="allowRepeats" />
-            <span class="slider"></span>
-          </label>
-          <label for="allowRepeats">Allow Repeats</label>
-        </div>
-        <hr class="w-50" />
-      </div>
-      <div class="d-flex flex-column align-items-center">
-        <h3>Auto Add</h3>
-        <div class="mb-2">
-          <label class="switch">
-            <input type="checkbox" id="autoAdd" />
-            <span class="slider"></span>
-          </label>
-          <label for="autoAdd">Auto Add</label>
-        </div>
-        <div id="autoAddSelection" class="visually-hidden">
-          <h5>Set Time</h5>
-          <div>
-            <div class="container m-4">
-              <fieldset
-                class="d-flex mt-2 mb-3 row justify-content-center"
-                aria-labelledby="daysLabel"
-                style="gap: 0.5rem"
+        <div
+          id="selectPlaylistContainer"
+          style="--bs-bg-opacity: 0.75"
+          class="d-none bg-black vw-100 vh-100 fixed-top d-flex justify-content-center align-items-center"
+        >
+          <div class="bg-body w-75 h-75 rounded-5 d-flex flex-column">
+            <h1 class="mt-4 vh-25">Choose Playlist</h1>
+            <div class="flex-grow h-100 overflow-auto" id="playlistList">
+              <div
+                id="playlistExampleElement"
+                class="bg-body rounded-5 p-3 m-3 d-flex justify-content-center align-items-center"
               >
-                <legend id="daysLabel" class="visually-hidden">
-                  Select days of the week
-                </legend>
-
-                <div class="form-check col-3">
-                  <input
-                    class="form-check-input"
-                    type="checkbox"
-                    name="days[]"
-                    value="monday"
-                    id="dayMonday"
-                  />
-                  <label class="form-check-label" for="dayMonday">Monday</label>
-                </div>
-
-                <div class="form-check col-3">
-                  <input
-                    class="form-check-input"
-                    type="checkbox"
-                    name="days[]"
-                    value="tuesday"
-                    id="dayTuesday"
-                  />
-                  <label class="form-check-label" for="dayTuesday"
-                    >Tuesday</label
-                  >
-                </div>
-
-                <div class="form-check col-3">
-                  <input
-                    class="form-check-input"
-                    type="checkbox"
-                    name="days[]"
-                    value="wednesday"
-                    id="dayWednesday"
-                  />
-                  <label class="form-check-label" for="dayWednesday"
-                    >Wednesday</label
-                  >
-                </div>
-
-                <div class="form-check col-3">
-                  <input
-                    class="form-check-input"
-                    type="checkbox"
-                    name="days[]"
-                    value="thursday"
-                    id="dayThursday"
-                  />
-                  <label class="form-check-label" for="dayThursday"
-                    >Thursday</label
-                  >
-                </div>
-
-                <div class="form-check col-3">
-                  <input
-                    class="form-check-input"
-                    type="checkbox"
-                    name="days[]"
-                    value="friday"
-                    id="dayFriday"
-                  />
-                  <label class="form-check-label" for="dayFriday">Friday</label>
-                </div>
-
-                <div class="form-check col-3">
-                  <input
-                    class="form-check-input"
-                    type="checkbox"
-                    name="days[]"
-                    value="saturday"
-                    id="daySaturday"
-                  />
-                  <label class="form-check-label" for="daySaturday"
-                    >Saturday</label
-                  >
-                </div>
-
-                <div class="form-check col-3">
-                  <input
-                    class="form-check-input"
-                    type="checkbox"
-                    name="days[]"
-                    value="sunday"
-                    id="daySunday"
-                  />
-                  <label class="form-check-label" for="daySunday">Sunday</label>
-                </div>
-              </fieldset>
+                <img
+                  src="https://i.scdn.co/image/ab67616d00004851f00a1acf866539632b187ea0"
+                  alt="Country Music"
+                />
+                <h4 class="ms-4">Country Music</h4>
+              </div>
+              <div
+                id="playlistExampleElement"
+                class="rounded-5 p-3 m-3 d-flex justify-content-center align-items-center"
+              >
+                <img
+                  src="https://i.scdn.co/image/ab67616d00004851f00a1acf866539632b187ea0"
+                  alt="Country Music"
+                />
+                <h4 class="ms-4">Country Music</h4>
+              </div>
             </div>
+            <div class="mb-4 d-flex justify-content-evenly">
+              <button id="CancelPlaylistSelect" class="btn btn-danger">
+                Cancel
+              </button>
+              <button id="SelectPlaylistSelect" class="btn btn-primary">
+                Select
+              </button>
+            </div>
+          </div>
+        </div>
 
+        <div class="d-flex flex-column align-items-center">
+          <h3>Song Request Limit</h3>
+          <div class="d-flex justify-content-center mt-3 mb-2">
+            <label class="" for="requestLimit">Number of Songs: </label>
             <input
-              class="p-2 rounded bg-body border-primary text-primary color-primary"
-              type="time"
-              name="timePicker"
-              id="timePicker"
+              class="ms-3 btn btn-outline-primary"
+              type="number"
+              name="requestLimit"
+              id="requestLimit"
+              min="1"
+              value="1"
             />
           </div>
+          <hr class="w-50" />
         </div>
-        <hr class="w-50" />
+        <div class="d-flex flex-column align-items-center">
+          <h3>Allow Repeats</h3>
+          <div class="mb-2">
+            <label class="switch">
+              <input type="checkbox" id="allowRepeats" />
+              <span class="slider"></span>
+            </label>
+            <label for="allowRepeats">Allow Repeats</label>
+          </div>
+          <hr class="w-50" />
+        </div>
+        <div class="d-flex flex-column align-items-center">
+          <h3>Auto Add</h3>
+          <div class="mb-2">
+            <label class="switch">
+              <input type="checkbox" id="autoAdd" />
+              <span class="slider"></span>
+            </label>
+            <label for="autoAdd">Auto Add</label>
+          </div>
+          <div id="autoAddSelection" class="visually-hidden">
+            <h5>Set Time</h5>
+            <div>
+              <div class="container m-4">
+                <fieldset
+                  class="d-flex mt-2 mb-3 row justify-content-center"
+                  aria-labelledby="daysLabel"
+                  style="gap: 0.5rem"
+                >
+                  <legend id="daysLabel" class="visually-hidden">
+                    Select days of the week
+                  </legend>
+
+                  <div class="form-check col-3">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      name="days[]"
+                      value="monday"
+                      id="dayMonday"
+                    />
+                    <label class="form-check-label" for="dayMonday"
+                      >Monday</label
+                    >
+                  </div>
+
+                  <div class="form-check col-3">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      name="days[]"
+                      value="tuesday"
+                      id="dayTuesday"
+                    />
+                    <label class="form-check-label" for="dayTuesday"
+                      >Tuesday</label
+                    >
+                  </div>
+
+                  <div class="form-check col-3">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      name="days[]"
+                      value="wednesday"
+                      id="dayWednesday"
+                    />
+                    <label class="form-check-label" for="dayWednesday"
+                      >Wednesday</label
+                    >
+                  </div>
+
+                  <div class="form-check col-3">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      name="days[]"
+                      value="thursday"
+                      id="dayThursday"
+                    />
+                    <label class="form-check-label" for="dayThursday"
+                      >Thursday</label
+                    >
+                  </div>
+
+                  <div class="form-check col-3">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      name="days[]"
+                      value="friday"
+                      id="dayFriday"
+                    />
+                    <label class="form-check-label" for="dayFriday"
+                      >Friday</label
+                    >
+                  </div>
+
+                  <div class="form-check col-3">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      name="days[]"
+                      value="saturday"
+                      id="daySaturday"
+                    />
+                    <label class="form-check-label" for="daySaturday"
+                      >Saturday</label
+                    >
+                  </div>
+
+                  <div class="form-check col-3">
+                    <input
+                      class="form-check-input"
+                      type="checkbox"
+                      name="days[]"
+                      value="sunday"
+                      id="daySunday"
+                    />
+                    <label class="form-check-label" for="daySunday"
+                      >Sunday</label
+                    >
+                  </div>
+                </fieldset>
+              </div>
+
+              <input
+                class="p-2 rounded bg-body border-primary text-primary color-primary"
+                type="time"
+                name="timePicker"
+                id="timePicker"
+              />
+            </div>
+          </div>
+          <hr class="w-50" />
+        </div>
       </div>
     </main>
   </body>
