@@ -4,9 +4,12 @@ import {
   autoAddTime,
   currentPlaylist,
   currentUser,
+  loadSettingsFromApi,
   myApiUrl,
   numbOfAllowedRequests,
   selectedDays,
+  setCurrentPlaylist,
+  setUser,
 } from "./constants.js";
 
 // const myApiUrl = "https://soutenu-chan-unscheming.ngrok-free.dev/";
@@ -47,6 +50,18 @@ export const login = async () => {
   return user;
 };
 
+export const logout = async () => {
+  document.cookie.split(";").forEach((cookie) => {
+    const eqPos = cookie.indexOf("=");
+    const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+    document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
+  });
+  // setUser(null);
+  // setCurrentPlaylist(null);
+  await fetch(`${myApiUrl}/logout`);
+  await loadSettingsFromApi();
+};
+
 export const getMe = async () => {
   const response = await fetch(`${myApiUrl}/me`);
   const user = await response.json();
@@ -80,11 +95,13 @@ export const getSettings = async () => {
 };
 
 export const getPlaylists = async () => {
-  const response = await fetch(`${myApiUrl}/me/playlists`)
+  const response = await fetch(`${myApiUrl}/me/playlists`);
   const playlists = await response.json();
   return playlists;
 };
 
 export const addSongToPlaylistAPI = async (playlistId, songId) => {
-  const response = await fetch(`${myApiUrl}/playlist/${playlistId}/add-song/${songId}`)
+  const response = await fetch(
+    `${myApiUrl}/playlist/${playlistId}/add-song/${songId}`
+  );
 };

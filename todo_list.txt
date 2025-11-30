@@ -1,9 +1,5 @@
 Todo:
 
-* Add songs to Playlist
-    * activate add button (remove access once added)
-        * Clear added songs once playlist changes?
-
 * Handle error w/ access token
 
 * real time updates

@@ -27,8 +27,6 @@ app.UseCors(x => x.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
 var client = new HttpClient();
 string accessToken = "";
 DateTime accessTokenExpiresAt = DateTime.MinValue;
-string userAccessToken = "";
-string userRefreshToken = "";
 var periodicTimer = new PeriodicTimer(TimeSpan.FromMinutes(55));
 
 
@@ -212,6 +210,8 @@ async Task RefreshAccessTokenPerodiclly()
 {
     while (await periodicTimer.WaitForNextTickAsync())
     {
+        await AccessToken();
+        Console.WriteLine("Refreshing Access Token... " + DateTime.Now);
         var client = new HttpClient();
         // ACCEPT header
         client.DefaultRequestHeaders.Accept.Add(
@@ -286,8 +286,9 @@ app.MapGet("/callback", async (string code, string state) =>
     }
 
     var doc = JsonDocument.Parse(content);
-    userAccessToken = doc.RootElement.GetProperty("access_token").GetString() ?? "";
-    userRefreshToken = doc.RootElement.GetProperty("refresh_token").GetString() ?? "";
+
+    var userAccessToken = doc.RootElement.GetProperty("access_token").GetString() ?? "";
+    var userRefreshToken = doc.RootElement.GetProperty("refresh_token").GetString() ?? "";
 
     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userAccessToken);
 
@@ -314,6 +315,7 @@ app.MapGet("/callback", async (string code, string state) =>
         email = profileElement.GetProperty("email").GetString() ?? "",
         userAccessToken = userAccessToken,
         userRefreshToken = userRefreshToken,
+        accessTokenExpiresAt = expirationTime
     };
 
     PlaylistManager.settings.currentUser = newUser;
@@ -321,6 +323,12 @@ app.MapGet("/callback", async (string code, string state) =>
     RefreshAccessTokenPerodiclly();
 
     return Results.Redirect(state);
+});
+
+app.MapGet("/logout", async () =>
+{
+    PlaylistManager.settings.currentUser = null;
+    var response = await client.GetAsync("https://accounts.spotify.com/en/logout ");
 });
 
 app.MapGet("/me", async () =>
@@ -335,24 +343,34 @@ app.MapGet("/me/playlists", async () =>
         await AccessToken();
     }
 
-    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userAccessToken);
+    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PlaylistManager.settings.currentUser.userAccessToken);
 
-    var response = client.GetAsync("https://api.spotify.com/v1/me/playlists");
-    var responseMessage = await response;
-    var content = response.Result.Content.ReadAsStringAsync().Result;
-    var doc = JsonDocument.Parse(content);
-    var playlists = doc.RootElement.GetProperty("items");
+    var response = await client.GetAsync("https://api.spotify.com/v1/me/playlists");
+    var JsonObjectResponse = JsonSerializer.Deserialize<JsonObject>(await response.Content.ReadAsStringAsync());
+
+    // JsonObjectResponse.TryGetPropertyValue("items", out JsonObject playlists);
+    var playlists = (JsonArray)JsonObjectResponse["items"];
 
     List<PlaylistData> playlistDatas = new();
-    foreach (var playlist in playlists.EnumerateArray())
+
+
+    foreach (JsonObject playlist in playlists)
     {
         PlaylistData currentPlaylist = new();
-        currentPlaylist.Id = playlist.GetProperty("id").GetString() ?? "";
-        currentPlaylist.Name = playlist.GetProperty("name").GetString() ?? "";
-        var images = playlist.GetProperty("images");
-        // Console.WriteLine(images);
-        var image = images[images.GetArrayLength() - 1];
-        currentPlaylist.ImgUrl = image.GetProperty("url").GetString() ?? "";
+
+        playlist.TryGetPropertyValue("id", out JsonNode newId);
+        currentPlaylist.Id = newId.ToString();
+        playlist.TryGetPropertyValue("name", out JsonNode newName);
+        currentPlaylist.Name = newName.ToString();
+        playlist.TryGetPropertyValue("images", out JsonNode newImages);
+        JsonObject image;
+        if (newImages != null)
+        {
+            image = (JsonObject)newImages[newImages.AsArray().Count() - 1];
+
+            image.TryGetPropertyValue("url", out JsonNode imgUrl);
+            currentPlaylist.ImgUrl = imgUrl.ToString();
+        }
 
         playlistDatas.Add(currentPlaylist);
     }
@@ -526,20 +544,26 @@ app.MapGet("/requested-songs", async () =>
 
 app.MapPost("/store-settings", (Settings settings) =>
 {
-    PlaylistManager.settings.currentUser = settings.currentUser;
-    PlaylistManager.settings.currentPlaylist = settings.currentPlaylist;
-    PlaylistManager.settings.numbOfAllowedRequests = settings.numbOfAllowedRequests;
-    PlaylistManager.settings.allowRepeats = settings.allowRepeats;
-    PlaylistManager.settings.autoAdd = settings.autoAdd;
-
-    foreach (var day in settings.selectedDays)
+    List<string> acceptableEmails = new() { "mwangsgard25@gmail.com" };
+    if (acceptableEmails.Contains(settings.currentUser?.email))
     {
-        PlaylistManager.settings.selectedDays[day.Key] = day.Value;
+
+        PlaylistManager.settings.currentUser = settings.currentUser;
+        PlaylistManager.settings.currentPlaylist = settings.currentPlaylist;
+        PlaylistManager.settings.numbOfAllowedRequests = settings.numbOfAllowedRequests;
+        PlaylistManager.settings.allowRepeats = settings.allowRepeats;
+        PlaylistManager.settings.autoAdd = settings.autoAdd;
+
+        foreach (var day in settings.selectedDays)
+        {
+            PlaylistManager.settings.selectedDays[day.Key] = day.Value;
+        }
+
+        PlaylistManager.settings.autoAddTime = settings.autoAddTime;
+
+        return Results.Ok(PlaylistManager.settings);
     }
-
-    PlaylistManager.settings.autoAddTime = settings.autoAddTime;
-
-    return Results.Ok(PlaylistManager.settings);
+    return Results.Unauthorized();
 });
 app.MapGet("/get-settings", () =>
 {
@@ -591,7 +615,7 @@ public class User
     public string email { get; set; }
     public string userAccessToken { get; set; }
     public string userRefreshToken { get; set; }
-    // public DateTime accessTokenExpiresAt { get; set; }
+    public DateTime accessTokenExpiresAt { get; set; }
 }
 
 public class SongData

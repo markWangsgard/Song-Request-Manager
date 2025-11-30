@@ -21,13 +21,8 @@ import {
   currentPlaylist,
   setCurrentPlaylist,
 } from "./constants.js";
-import {
-  getMe,
-  getPlaylists,
-  getSettings,
-  login,
-  setSettings,
-} from "./service.js";
+import { songsAddedToPlaylist } from "./domain.js";
+import { getPlaylists, login, setSettings, logout } from "./service.js";
 
 const bodyElement = document.getElementById("body");
 const loginButton = document.getElementById("signIn");
@@ -60,7 +55,11 @@ const addAllEventListeners = async () => {
 
   loginButton.addEventListener("click", async (e) => {
     e.preventDefault();
-    await login();
+    if (currentUser === null) {
+      await login();
+    } else {
+      await logout();
+    }
     updateUser();
   });
 
@@ -145,11 +144,12 @@ const updateUser = () => {
     userNameElement.textContent = `Signed in as ${user.displayName}`;
     const loginButton = document.getElementById("signIn");
     loginButton.textContent = "Sign Out";
-    loginButton.disabled = true;
-
+    
     selectPlaylistButton.disabled = false;
     setUser(user);
   } else {
+    const loginButton = document.getElementById("signIn");
+    loginButton.textContent = "Sign In";
     selectPlaylistButton.disabled = true;
     userNameElement.classList.add("visually-hidden");
   }
@@ -165,6 +165,7 @@ const updatePlaylist = () => {
   } else {
     selectedPlaylistTextElement.classList.add("visually-hidden");
   }
+  songsAddedToPlaylist.length = 0;
 };
 
 const updateAutoAdd = () => {};
@@ -218,7 +219,7 @@ const displayPlaylists = async () => {
 
       const playlistImageElement = document.createElement("img");
       playlistImageElement.style = "height: 75px;";
-      playlistImageElement.src = p.imgUrl;
+      playlistImageElement.src = p.imgUrl ?? "./images/missing-image.svg";
       playlistImageElement.alt = p.name;
       playlistElement.appendChild(playlistImageElement);
 
@@ -261,8 +262,8 @@ const displayPlaylists = async () => {
 addAllEventListeners();
 await loadSettingsFromApi();
 loadSettings();
-if (currentUser === null) {
-  await login();
-}
+// if (currentUser === null) {
+//   await login();
+// }
 await setSettings();
 displayPlaylists();

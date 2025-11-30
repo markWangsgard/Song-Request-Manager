@@ -127,8 +127,6 @@ const displaySongs = async (searching, query = "") => {
       {
         await addSongToPlaylist(currentPlaylist, result);
         displaySongs();
-        console.log("Added Song");
-        console.log(songsAddedToPlaylist);
       }
     });
 
@@ -149,6 +147,21 @@ const displaySongs = async (searching, query = "") => {
     });
   });
 };
+
+
+
+await loadSettingsFromApi();
+
+if (currentUser === null)
+{
+  const loginWarningElement = document.getElementById("loginWarning");
+  loginWarningElement.classList.remove("d-none")
+}
+else if (currentPlaylist === null)
+{
+  const playlistWarningElement = document.getElementById("playlistWarning")
+  playlistWarningElement.classList.remove("d-none");
+}
 
 // displaySongs(true, "travlin");
 displaySongs(false);
