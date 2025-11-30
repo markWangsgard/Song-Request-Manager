@@ -69,6 +69,7 @@ const addAllEventListeners = async () => {
     const popupElement = document.getElementById("selectPlaylistContainer");
     popupElement.classList.remove("d-none");
     bodyElement.classList.add("no-scroll");
+    displayPlaylists();
     // bodyElement.style.scrollBehavior = "hidden";
   });
 
@@ -271,4 +272,3 @@ loadSettings();
 //   await login();
 // }
 await setSettings();
-displayPlaylists();
