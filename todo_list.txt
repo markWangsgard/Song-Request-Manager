@@ -1,7 +1,13 @@
 Todo:
 
-* Handle error w/ access token
+* separate users and admins
+
+* Refactor settings or current admin to users. This should make it so that only users with matching login admins can see the settings
+
+* Refactor/review all code
 
 * real time updates
 
 * access anywhere
+
+* Handle error w/ access token - I think it's fixed...
