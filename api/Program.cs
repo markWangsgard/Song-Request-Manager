@@ -257,7 +257,8 @@ app.MapGet("/login", (string returnTo = "http://127.0.0.1:5001/me") =>
               $"&response_type=code" +
               $"&redirect_uri={redirectUri}" +
               $"&state={state}" +
-              $"&scope=user-read-private%20user-read-email%20playlist-modify-public%20playlist-modify-private%20playlist-read-private%20playlist-read-collaborative";
+              $"&scope=user-read-private%20user-read-email%20playlist-modify-public%20playlist-modify-private%20playlist-read-private%20playlist-read-collaborative" +
+              $"&show_dialog=true";
 
     return Results.Redirect(url);
 });
