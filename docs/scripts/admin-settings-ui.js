@@ -64,12 +64,12 @@ const addAllEventListeners = async () => {
     updateUser();
   });
 
-  selectPlaylistButton.addEventListener("click", (e) => {
+  selectPlaylistButton.addEventListener("click", async (e) => {
     e.preventDefault();
+    await displayPlaylists();
     const popupElement = document.getElementById("selectPlaylistContainer");
     popupElement.classList.remove("d-none");
     bodyElement.classList.add("no-scroll");
-    displayPlaylists();
     // bodyElement.style.scrollBehavior = "hidden";
   });
 
