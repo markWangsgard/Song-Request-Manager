@@ -1,7 +1,9 @@
 import { getSettings, setSettings } from "./service.js";
 import { updateRequestsFromSettings } from "./domain.js";
 
-export const myApiUrl = "http://127.0.0.1:5001";
+// export const myApiUrl = "http://127.0.0.1:5001";
+export const myApiUrl = "https://song-request-manager.onrender.com";
+
 // export const myApiUrl = `https://soutenu-chan-unscheming.ngrok-free.dev`;
 
 // settings
