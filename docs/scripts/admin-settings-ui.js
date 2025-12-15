@@ -265,9 +265,14 @@ const displayPlaylists = async () => {
   }
 };
 
+
 addAllEventListeners();
 await loadSettingsFromApi();
 loadSettings();
+const loaderElement = document.getElementById("loader");
+loaderElement.classList.add("d-none");
+const loginSectionElement = document.getElementById("loginSection");
+loginSectionElement.classList.remove("d-none");
 // if (currentUser === null) {
 //   await login();
 // }

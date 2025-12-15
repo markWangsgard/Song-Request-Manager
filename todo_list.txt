@@ -1,5 +1,7 @@
 Todo:
 
+* debug why settings aren't updating
+
 * add clear requests
 
 * separate users and admins
@@ -9,7 +11,5 @@ Todo:
 * Refactor/review all code
 
 * real time updates
-
-* access anywhere
 
 * Handle error w/ access token - I think it's fixed...
