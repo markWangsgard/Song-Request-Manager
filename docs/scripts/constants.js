@@ -1,5 +1,4 @@
 import { getSettings, setSettings } from "./service.js";
-import { updateRequestsFromSettings } from "./domain.js";
 
 // export const myApiUrl = "http://127.0.0.1:5001";
 export const myApiUrl = "https://song-request-manager.onrender.com";
@@ -47,22 +46,18 @@ export let allowEdits = false;
 export const setUser = (user) => {
   currentUser = user;
   setSettings();
-  updateRequestsFromSettings();
 };
 export const setCurrentPlaylist = (playlist) => {
   currentPlaylist = playlist;
   setSettings();
-  updateRequestsFromSettings();
 };
 export const setNumbOfAllowedRequests = (limit) => {
   numbOfAllowedRequests = limit;
   setSettings();
-  updateRequestsFromSettings();
 };
 export const setAllowRepeats = (allowed) => {
   allowRepeats = allowed;
   setSettings();
-  updateRequestsFromSettings();
 };
 export const setAutoAdd = (auto) => {
   autoAdd = auto;
@@ -71,40 +66,32 @@ export const setAutoAdd = (auto) => {
 export const setMonday = (monday) => {
   selectedDays.monday = monday;
   setSettings();
-  updateRequestsFromSettings();
 };
 export const setTuesday = (tuesday) => {
   selectedDays.tuesday = tuesday;
   setSettings();
-  updateRequestsFromSettings();
 };
 export const setWednesday = (wednesday) => {
   selectedDays.wednesday = wednesday;
   setSettings();
-  updateRequestsFromSettings();
 };
 export const setThursday = (thursday) => {
   selectedDays.thursday = thursday;
   setSettings();
-  updateRequestsFromSettings();
 };
 export const setFriday = (friday) => {
   selectedDays.friday = friday;
   setSettings();
-  updateRequestsFromSettings();
 };
 export const setSaturday = (saturday) => {
   selectedDays.saturday = saturday;
   setSettings();
-  updateRequestsFromSettings();
 };
 export const setSunday = (sunday) => {
   selectedDays.sunday = sunday;
   setSettings();
-  updateRequestsFromSettings();
 };
 export const setAutoAddTime = (time) => {
   autoAddTime = time;
   setSettings();
-  updateRequestsFromSettings();
 };

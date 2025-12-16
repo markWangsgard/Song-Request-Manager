@@ -4,7 +4,7 @@ Todo:
 
 * add clear requests
 
-* separate users and admins
+* Setup auto add time
 
 * Refactor settings or current admin to users. This should make it so that only users with matching login admins can see the settings
 
@@ -12,4 +12,8 @@ Todo:
 
 * real time updates
 
+Complete?: 
+
 * Handle error w/ access token - I think it's fixed...
+
+* separate users and admins
