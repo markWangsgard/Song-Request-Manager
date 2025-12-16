@@ -27,7 +27,7 @@ app.UseCors(x => x.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
 var client = new HttpClient();
 string accessToken = "";
 DateTime accessTokenExpiresAt = DateTime.MinValue;
-var periodicTimer = new PeriodicTimer(TimeSpan.FromMinutes(55));
+var periodicTimer = new PeriodicTimer(TimeSpan.FromMinutes(25));
 
 
 
@@ -207,36 +207,48 @@ async Task<SongData?> GetSong(string id)
 }
 
 
-async Task RefreshAccessTokenPerodiclly()
+async Task RefreshAccessTokenPeriodically()
 {
     while (await periodicTimer.WaitForNextTickAsync())
     {
         await AccessToken();
-        Console.WriteLine("Refreshing Access Token... " + DateTime.Now);
-        var client = new HttpClient();
-        // ACCEPT header
-        client.DefaultRequestHeaders.Accept.Add(
-             new MediaTypeWithQualityHeaderValue("application/json"));
-        var request = new HttpRequestMessage(HttpMethod.Post, "https://accounts.spotify.com/api/token");
-        // CONTENT-TYPE header
-        request.Content = new StringContent("{\"name\":\"John Doe\",\"age\":33}",
-                             Encoding.UTF8, "application/json");
-        var clientId = Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_ID");
-        var clientSecret = Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_SECRET");
-        var auth = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
-        request.Headers.Authorization = new AuthenticationHeaderValue("Basic", auth);
+        Console.WriteLine("Refreshing Access Tokens... " + DateTime.Now);
+        var refreshTasks = PlaylistManager.Users.Keys.Select(user => RefreshAccessToken(user));
 
-        request.Content = new FormUrlEncodedContent(new[]
-        {
+        await Task.WhenAll(refreshTasks);
+    }
+}
+
+async Task RefreshAccessToken(string user)
+{
+    if (!PlaylistManager.Users.ContainsKey(user) || PlaylistManager.Users[user] == null)
+    {
+        return;
+    }
+
+    var client = new HttpClient();
+    // ACCEPT header
+    client.DefaultRequestHeaders.Accept.Add(
+         new MediaTypeWithQualityHeaderValue("application/json"));
+    var request = new HttpRequestMessage(HttpMethod.Post, "https://accounts.spotify.com/api/token");
+    // CONTENT-TYPE header
+    request.Content = new StringContent("{\"name\":\"John Doe\",\"age\":33}",
+                         Encoding.UTF8, "application/json");
+    var clientId = Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_ID");
+    var clientSecret = Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_SECRET");
+    var auth = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
+    request.Headers.Authorization = new AuthenticationHeaderValue("Basic", auth);
+
+    request.Content = new FormUrlEncodedContent(new[]
+    {
         new KeyValuePair<string, string>("grant_type", "refresh_token"),
-        new KeyValuePair<string, string>("refresh_token", PlaylistManager.settings.currentUser.userRefreshToken),
+        new KeyValuePair<string, string>("refresh_token", PlaylistManager.Users[user].userRefreshToken),
         new KeyValuePair<string, string>("client_id", clientId)
     });
-        var response = await client.SendAsync(request);
-        var JsonObjectResponse = JsonSerializer.Deserialize<JsonObject>(await response.Content.ReadAsStringAsync());
-        JsonObjectResponse.TryGetPropertyValue("access_token", out JsonNode jsonNode);
-        PlaylistManager.settings.currentUser.userAccessToken = jsonNode.ToString();
-    }
+    var response = await client.SendAsync(request);
+    var JsonObjectResponse = JsonSerializer.Deserialize<JsonObject>(await response.Content.ReadAsStringAsync());
+    JsonObjectResponse.TryGetPropertyValue("access_token", out JsonNode jsonNode);
+    PlaylistManager.Users[user].userAccessToken = jsonNode.ToString();
 }
 
 
@@ -246,10 +258,12 @@ app.MapGet("/", async () =>
     return $"Spotify API Proxy is running. Access Token: {accessToken}";
 });
 
-app.MapGet("/login", (string returnTo = "http://127.0.0.1:5001/me") =>
+app.MapGet("/login/{user}", (string user, string returnTo = "http://127.0.0.1:5001/me") =>
 {
     var redirectUri = Uri.EscapeDataString(Environment.GetEnvironmentVariable("SPOTIFY_REDIRECT_URI"));
-    var state = Uri.EscapeDataString(returnTo);
+    string returnToUri = Uri.EscapeDataString(returnTo);
+    State tempState = new(user, returnToUri);
+    string state = JsonSerializer.Serialize(tempState);
 
     var ClientId = Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_ID");
 
@@ -296,6 +310,9 @@ app.MapGet("/callback", async (string code, string state) =>
 
     var responseMe = client.GetAsync("https://api.spotify.com/v1/me/");
     var responseMessage = await responseMe;
+
+    State currentState = JsonSerializer.Deserialize<State>(state);
+
     if (responseMessage.StatusCode.ToString() == "OK")
     {
         var profileContent = await responseMessage.Content.ReadAsStringAsync();
@@ -314,7 +331,7 @@ app.MapGet("/callback", async (string code, string state) =>
             expirationTime = DateTime.UtcNow.AddMinutes(60);
         }
 
-        User newUser = new()
+        Admin newUser = new()
         {
             displayName = profileElement.GetProperty("display_name").GetString() ?? "",
             email = profileElement.GetProperty("email").GetString() ?? "",
@@ -323,33 +340,46 @@ app.MapGet("/callback", async (string code, string state) =>
             accessTokenExpiresAt = expirationTime
         };
 
-        PlaylistManager.settings.currentUser = newUser;
+        if (PlaylistManager.Users.ContainsKey(currentState.User))
+        {
+            PlaylistManager.Users[currentState.User] = newUser;
+        }
+        else
+        {
+            PlaylistManager.Users.Add(currentState.User, newUser);
+        }
 
-        RefreshAccessTokenPerodiclly();
+        await RefreshAccessTokenPeriodically();
 
     }
-    return Results.Redirect(state);
+    return Results.Redirect(currentState.ReturnTo);
 });
 
-app.MapGet("/logout", async () =>
+app.MapGet("/logout/{user}", async (string user) =>
 {
-    PlaylistManager.settings.currentUser = null;
+    PlaylistManager.Users[user] = null;
     var response = await client.GetAsync("https://accounts.spotify.com/en/logout ");
 });
 
-app.MapGet("/me", async () =>
+app.MapGet("/me/{user}", async (string user = "") =>
 {
-    return PlaylistManager.settings.currentUser;
+    if (PlaylistManager.Users.ContainsKey(user))
+    {
+        return Results.Content(JsonSerializer.Serialize(PlaylistManager.Users[user]), "application/json");
+    }
+    return Results.Json(new { error = "User not found" });
 });
 
-app.MapGet("/me/playlists", async () =>
+app.MapGet("/me/{user}/playlists", async (string user) =>
 {
-    if (PlaylistManager.settings.currentUser.userAccessToken == null || PlaylistManager.settings.currentUser.userAccessToken == "")
+    if (!PlaylistManager.Users.ContainsKey(user))
     {
-        await AccessToken();
+        return Results.Json(new { error = "User not found" });
     }
 
-    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PlaylistManager.settings.currentUser.userAccessToken);
+    await AccessToken();
+
+    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PlaylistManager.Users[user].userAccessToken);
 
     var response = await client.GetAsync("https://api.spotify.com/v1/me/playlists");
     var JsonObjectResponse = JsonSerializer.Deserialize<JsonObject>(await response.Content.ReadAsStringAsync());
@@ -381,7 +411,7 @@ app.MapGet("/me/playlists", async () =>
         playlistDatas.Add(currentPlaylist);
     }
 
-    return playlistDatas;
+    return Results.Content(JsonSerializer.Serialize(playlistDatas), "application/json");
 });
 
 
@@ -503,11 +533,29 @@ app.MapGet("/clear-requests", () =>
     return Results.Json(new { status = "cleared" });
 });
 
-app.MapGet("/playlist/{playlistId}/add-song/{songId}", async (string playlistId, string songId) =>
+app.MapGet("/playlist/{playlistId}/{user}/add-song/{songId}", async (string playlistId, string user, string songId) =>
 {
     var song = await GetSong(songId);
-    var trackUri = song.uri;
-    var token = PlaylistManager.settings.currentUser.userAccessToken;
+    string trackUri;
+    if (song != null)
+    {
+        trackUri = song.uri;
+    }
+    else
+    {
+        return Results.Json(new { statusCode = "Song Not found" });
+    }
+
+    string token;
+    if (PlaylistManager.Users.ContainsKey(user))
+    {
+        token = PlaylistManager.Users[user].userAccessToken;
+    }
+    else
+    {
+        return Results.Json(new { statusCode = "User Not found" });
+    }
+
 
     using var client = new HttpClient();
 
@@ -523,7 +571,7 @@ app.MapGet("/playlist/{playlistId}/add-song/{songId}", async (string playlistId,
 
     Console.WriteLine("Response: " + responseBody);
 
-    return responseBody;
+    return Results.Content(responseBody, "application/json");
 });
 
 
@@ -548,12 +596,13 @@ app.MapGet("/requested-songs", async () =>
     return PlaylistManager.AllSongs.OrderBy(s => s.requestCount).Reverse();
 });
 
-app.MapPost("/store-settings", (Settings settings) =>
+app.MapPost("/store-settings/{user}", (string user, Settings settings) =>
 {
-    if (PlaylistManager.settings.allowEdits)
+    if (PlaylistManager.Users.ContainsKey(user) && PlaylistManager.Users[user] != null)
     {
+        bool limitDecreased = PlaylistManager.settings.numbOfAllowedRequests > settings.numbOfAllowedRequests;
+        bool allowRepeatsChanged = PlaylistManager.settings.allowRepeats != settings.allowRepeats;
 
-        PlaylistManager.settings.currentUser = settings.currentUser;
         PlaylistManager.settings.currentPlaylist = settings.currentPlaylist;
         PlaylistManager.settings.numbOfAllowedRequests = settings.numbOfAllowedRequests;
         PlaylistManager.settings.allowRepeats = settings.allowRepeats;
@@ -565,6 +614,31 @@ app.MapPost("/store-settings", (Settings settings) =>
         }
 
         PlaylistManager.settings.autoAddTime = settings.autoAddTime;
+
+        if (limitDecreased || allowRepeatsChanged)
+        {
+            foreach (var newUser in PlaylistManager.Users.Keys)
+            {
+                if (PlaylistManager.RequestedSongs.ContainsKey(newUser))
+                {
+                    // var requestedSongs = PlaylistManager.RequestedSongs[newUser];
+                    if (limitDecreased)
+                    {
+                        while (PlaylistManager.RequestedSongs[newUser].Count > settings.numbOfAllowedRequests)
+                        {
+                            PlaylistManager.RequestedSongs[newUser].RemoveAt(PlaylistManager.RequestedSongs[newUser].Count - 1);
+                        }
+                    }
+
+                    if (allowRepeatsChanged && !settings.allowRepeats)
+                    {
+                        var uniqueSongs = PlaylistManager.RequestedSongs[newUser].DistinctBy(s => s.id).ToList();
+                        PlaylistManager.RequestedSongs[newUser] = uniqueSongs;
+                    }
+
+                }
+            }
+        }
 
         return Results.Ok(PlaylistManager.settings);
     }
@@ -579,6 +653,7 @@ app.Run();
 
 public static class PlaylistManager
 {
+    public static Dictionary<string, Admin> Users = new();
     public static Dictionary<string, List<SongData>> RequestedSongs { get; set; } = new Dictionary<string, List<SongData>>();
     // public static Dictionary<string, Settings> UserSettings = new();
     public static Settings settings = new Settings();
@@ -588,7 +663,7 @@ public static class PlaylistManager
         int count = 0;
         foreach (var user in RequestedSongs)
         {
-            count += user.Value.Where(s => s.id == songID).Count();
+            count += user.Value.Count(s => s.id == songID);
         }
         return count;
     }
@@ -597,8 +672,6 @@ public static class PlaylistManager
 public class Settings
 {
     List<string> acceptableEmails = new() { "mwangsgard25@gmail.com" };
-    public bool allowEdits { get { return acceptableEmails.Contains(currentUser?.email); } }
-    public User currentUser { get; set; }
     public PlaylistData currentPlaylist { get; set; }
     public int numbOfAllowedRequests { get; set; } = 3;
     public bool allowRepeats { get; set; } = true;
@@ -616,7 +689,7 @@ public class Settings
     public string autoAddTime { get; set; } = "";
 }
 
-public class User
+public class Admin
 {
     public string displayName { get; set; }
     public string email { get; set; }
@@ -642,3 +715,5 @@ public class PlaylistData
     public string Name { get; set; }
     public string ImgUrl { get; set; }
 }
+
+record State(string User, string ReturnTo);

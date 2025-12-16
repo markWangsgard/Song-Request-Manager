@@ -7,19 +7,6 @@ if (!userID) {
   window.localStorage.setItem("userID", userID);
 }
 
-export const updateRequestsFromSettings = async () => {
-  await loadSettingsFromApi();
-
-  const requests = await getUserRequests(userID)
-  if (requests.length > numbOfAllowedRequests)
-  {
-    for (let i = requests.length - numbOfAllowedRequests; i > 0; i--)
-      {
-      RemoveSong(userID, requests[0].id);
-    }
-  }
-};
-
 const limitReached = async () => {
   const requests = await getUserRequests(userID);
   if (requests.statusCode) {
