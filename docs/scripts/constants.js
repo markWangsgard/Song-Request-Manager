@@ -26,11 +26,11 @@ export const loadSettingsFromApi = async () => {
   const settings = await getSettings();
 
   // console.log(settings);
-  currentUser = settings.currentUser;
+  // currentUser = settings.currentUser;
   currentPlaylist = settings.currentPlaylist;
   numbOfAllowedRequests = settings.numbOfAllowedRequests;
   allowRepeats = settings.allowRepeats;
-  autoAdd = settings.allowRepeats;
+  autoAdd = settings.autoAdd;
   selectedDays.monday = settings.selectedDays.monday;
   selectedDays.tuesday = settings.selectedDays.tuesday;
   selectedDays.wednesday = settings.selectedDays.wednesday;

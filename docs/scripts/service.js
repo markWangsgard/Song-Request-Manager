@@ -43,7 +43,7 @@ export const RemoveSong = async (userID, songID) => {
 };
 
 export const login = async () => {
-  console.log("login");
+  // console.log("login");
   window.location = `${myApiUrl}/login/${userID}?returnTo=${encodeURIComponent(
     window.location.href
   )}`;
@@ -95,6 +95,8 @@ export const getSettings = async () => {
   const settings = await response.json();
   const me = await getMe();
   const updatedSettings = { ...settings, isAdmin: me !== null };
+  
+  setUser(me);
   return updatedSettings;
 };
 

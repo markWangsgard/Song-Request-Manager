@@ -22,7 +22,7 @@ import {
   setCurrentPlaylist,
   isAdmin,
 } from "./constants.js";
-import { songsAddedToPlaylist } from "./domain.js";
+import { songsAddedToPlaylist, userID } from "./domain.js";
 import { getPlaylists, login, setSettings, logout } from "./service.js";
 
 const bodyElement = document.getElementById("body");
@@ -167,7 +167,7 @@ const updatePlaylist = () => {
     "playlistSelectedText"
   );
   if (currentPlaylist !== null) {
-    selectedPlaylistTextElement.textContent = `Playlist selected: ${currentPlaylist.name}`;
+    selectedPlaylistTextElement.textContent = `Playlist selected: ${currentPlaylist.Name}`;
     selectedPlaylistTextElement.classList.remove("visually-hidden");
   } else {
     selectedPlaylistTextElement.classList.add("visually-hidden");
@@ -205,17 +205,19 @@ const displayPlaylists = async () => {
 
     const playlistListElement = document.getElementById("playlistList");
     playlistListElement.replaceChildren();
-
+    
     // <div id="playlistExampleElement" class="rounded-5 p-3 m-3 d-flex justify-content-center align-items-center">
     //           <img src="https://i.scdn.co/image/ab67616d00004851f00a1acf866539632b187ea0" alt="Country Music">
     //           <h4 class="ms-4">Country Music</h4>
     //         </div>
-
+    
     playlists.forEach((p) => {
+      // console.log(p);
       const playlistElement = document.createElement("div");
-      if (tempSelectedPlaylist !== null && p.id === tempSelectedPlaylist.id) {
+      if (tempSelectedPlaylist !== null && p.Id === tempSelectedPlaylist.Id) {
         playlistElement.classList.add("bg-secondary");
       }
+      console.log(tempSelectedPlaylist);
       playlistElement.classList.add("rounded-5");
       playlistElement.classList.add("p-3");
       playlistElement.classList.add("m-3");
@@ -226,13 +228,13 @@ const displayPlaylists = async () => {
 
       const playlistImageElement = document.createElement("img");
       playlistImageElement.style = "height: 75px;";
-      playlistImageElement.src = p.imgUrl ?? "./images/missing-image.svg";
-      playlistImageElement.alt = p.name;
+      playlistImageElement.src = p.ImgUrl ?? "./images/missing-image.svg";
+      playlistImageElement.alt = p.Name;
       playlistElement.appendChild(playlistImageElement);
 
       const playlistTextElement = document.createElement("h4");
       playlistTextElement.classList.add("ms-4");
-      playlistTextElement.textContent = p.name;
+      playlistTextElement.textContent = p.Name;
       playlistElement.appendChild(playlistTextElement);
 
       playlistElement.addEventListener("mouseenter", () => {
@@ -243,7 +245,7 @@ const displayPlaylists = async () => {
         playlistElement.classList.add("text-black");
       });
       playlistElement.addEventListener("mouseleave", () => {
-        if (tempSelectedPlaylist !== null && p.id === tempSelectedPlaylist.id) {
+        if (tempSelectedPlaylist !== null && p.Id === tempSelectedPlaylist.Id) {
           playlistElement.classList.add("bg-secondary");
         } else {
           playlistElement.classList.add("bg-body");
@@ -253,7 +255,7 @@ const displayPlaylists = async () => {
       });
 
       playlistElement.addEventListener("click", () => {
-        if (tempSelectedPlaylist !== null && p.id === tempSelectedPlaylist.id) {
+        if (tempSelectedPlaylist !== null && p.Id === tempSelectedPlaylist.Id) {
           tempSelectedPlaylist = null;
           displayPlaylists();
           return;
@@ -269,6 +271,7 @@ const displayPlaylists = async () => {
 
 addAllEventListeners();
 await loadSettingsFromApi();
+console.log(currentUser);
 loadSettings();
 const loaderElement = document.getElementById("loader");
 loaderElement.classList.add("d-none");
