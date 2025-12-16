@@ -43,6 +43,7 @@ export const RemoveSong = async (userID, songID) => {
 };
 
 export const login = async () => {
+  console.log("login");
   window.location = `${myApiUrl}/login/${userID}?returnTo=${encodeURIComponent(
     window.location.href
   )}`;
@@ -92,7 +93,9 @@ export const setSettings = async () => {
 export const getSettings = async () => {
   const response = await fetch(`${myApiUrl}/get-settings`);
   const settings = await response.json();
-  return settings;
+  const me = await getMe();
+  const updatedSettings = { ...settings, isAdmin: me !== null };
+  return updatedSettings;
 };
 
 export const getPlaylists = async () => {

@@ -20,7 +20,7 @@ import {
   currentUser,
   currentPlaylist,
   setCurrentPlaylist,
-  allowEdits,
+  isAdmin,
 } from "./constants.js";
 import { songsAddedToPlaylist } from "./domain.js";
 import { getPlaylists, login, setSettings, logout } from "./service.js";
@@ -56,10 +56,11 @@ const addAllEventListeners = async () => {
 
   loginButton.addEventListener("click", async (e) => {
     e.preventDefault();
-    if (currentUser === null) {
-      await login();
-    } else {
+    console.log(currentUser);
+    if (currentUser) {
       await logout();
+    } else {
+      await login();
     }
     updateUser();
   });
@@ -142,12 +143,12 @@ const addAllEventListeners = async () => {
 const updateUser = () => {
   const user = currentUser;
   const allSettingsElement = document.getElementById("allSettings");
-  if (user !== null) {
+  if (user) {
     userNameElement.classList.remove("visually-hidden");
     userNameElement.textContent = `Signed in as ${user.displayName}`;
     const loginButton = document.getElementById("signIn");
     loginButton.textContent = "Sign Out";
-    if (allowEdits)
+    if (isAdmin)
     {
       allSettingsElement.classList.remove("d-none");
     }

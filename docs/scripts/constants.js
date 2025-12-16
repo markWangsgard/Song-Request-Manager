@@ -25,6 +25,7 @@ export let autoAddTime = "22:30";
 export const loadSettingsFromApi = async () => {
   const settings = await getSettings();
 
+  // console.log(settings);
   currentUser = settings.currentUser;
   currentPlaylist = settings.currentPlaylist;
   numbOfAllowedRequests = settings.numbOfAllowedRequests;
@@ -38,10 +39,10 @@ export const loadSettingsFromApi = async () => {
   selectedDays.saturday = settings.selectedDays.saturday;
   selectedDays.sunday = settings.selectedDays.sunday;
   autoAddTime = settings.autoAddTime;
-  allowEdits = settings.allowEdits;
+  isAdmin = settings.isAdmin;
 };
 
-export let allowEdits = false;
+export let isAdmin = false;
 
 export const setUser = (user) => {
   currentUser = user;

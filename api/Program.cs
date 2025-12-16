@@ -349,7 +349,7 @@ app.MapGet("/callback", async (string code, string state) =>
             PlaylistManager.Users.Add(currentState.User, newUser);
         }
 
-        await RefreshAccessTokenPeriodically();
+        RefreshAccessTokenPeriodically();
 
     }
     return Results.Redirect(currentState.ReturnTo);
@@ -644,7 +644,7 @@ app.MapPost("/store-settings/{user}", (string user, Settings settings) =>
     }
     return Results.Unauthorized();
 });
-app.MapGet("/get-settings", () =>
+app.MapGet("/get-settings/", () =>
 {
     return PlaylistManager.settings;
 });
