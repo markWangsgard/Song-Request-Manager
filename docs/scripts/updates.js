@@ -8,7 +8,7 @@ if (!signalR) {
   console.log("SignalR client loaded.");
 
   const connection = new signalR.HubConnectionBuilder()
-    .withUrl(`${myApiUrl}/songRequestManager`)
+    .withUrl(`${myApiUrl}/songRequestManager`, { withCredentials: false })
     .withAutomaticReconnect()
     .build();
 
