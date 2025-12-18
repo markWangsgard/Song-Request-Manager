@@ -248,7 +248,7 @@ async Task RefreshAccessToken(string user)
     JsonObjectResponse.TryGetPropertyValue("access_token", out JsonNode jsonNode);
     PlaylistManager.Users[user].userAccessToken = jsonNode.ToString();
 }
-void removeSong(string user, string songId)
+async Task removeSongAsync(string user, string songId)
 {
     int index;
     SongData song;
@@ -266,7 +266,7 @@ void removeSong(string user, string songId)
         index = PlaylistManager.AllSongs.FindIndex(s => s.id == songId);
         PlaylistManager.AllSongs.RemoveAt(index);
     }
-    hub.SendSongRequestUpdate();
+    await hub.SendSongRequestUpdate();
 }
 
 
@@ -508,7 +508,7 @@ app.MapGet("/request-song/{user}/{songID}", async (string user, string songID) =
         }
     }
 
-    hub.SendSongRequestUpdate();
+    await hub.SendSongRequestUpdate();
 
     return Results.Json(new { songID, requests = PlaylistManager.getSongRequestCount(songID) });
 });
@@ -516,18 +516,18 @@ app.MapGet("/request-song/{user}/{songID}", async (string user, string songID) =
 app.MapGet("/remove-song/{user}/{songId}", (string user, string songId) =>
 {
 
-    removeSong(user, songId);
+    removeSongAsync(user, songId);
 
     return Task.FromResult(Results.Json(new { user, status = "removed" }));
 });
 
 
-app.MapGet("/clear-requests", () =>
+app.MapGet("/clear-requests", async () =>
 {
     PlaylistManager.RequestedSongs.Clear();
     PlaylistManager.AllSongs.Clear();
     
-    hub.SendSongRequestUpdate();
+    await hub.SendSongRequestUpdate();
 
     return Results.Json(new { status = "cleared" });
 });
@@ -595,7 +595,7 @@ app.MapGet("/requested-songs", async () =>
     return PlaylistManager.AllSongs.OrderBy(s => s.requestCount).Reverse();
 });
 
-app.MapPost("/store-settings/{user}", (string user, Settings settings) =>
+app.MapPost("/store-settings/{user}", async (string user, Settings settings) =>
 {
     if (PlaylistManager.Users.ContainsKey(user) && PlaylistManager.Users[user] != null)
     {
@@ -626,7 +626,7 @@ app.MapPost("/store-settings/{user}", (string user, Settings settings) =>
                         while (PlaylistManager.RequestedSongs[newUser].Count > settings.numbOfAllowedRequests)
                         {
                             string songId = PlaylistManager.RequestedSongs[newUser][PlaylistManager.RequestedSongs[newUser].Count - 1].id;
-                            removeSong(newUser, songId);
+                            removeSongAsync(newUser, songId);
                         }
                     }
 
@@ -640,7 +640,7 @@ app.MapPost("/store-settings/{user}", (string user, Settings settings) =>
             }
         }
 
-        hub.SendSongRequestUpdate();
+        await hub.SendSongRequestUpdate();
 
         return Results.Ok(PlaylistManager.settings);
     }
