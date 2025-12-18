@@ -1,17 +1,19 @@
-import * as signalR from
-  "https://cdn.jsdelivr.net/npm/@microsoft/signalr/dist/browser/signalr.min.js";
-import { displaySongs as adminDisplaySongs } from "./admin-ui.js";
-import { displaySongs as homeDisplaySongs} from "./home-ui.js";
+import { homeDisplaySongs, adminDisplaySongs} from "./displayUpdates.js";
+
+console.log(signalR);
 
 const connection = new signalR.HubConnectionBuilder()
-    .withUrl("/songRequestManager")
-    .withAutomaticReconnect()
-    .build();
+  .withUrl("/songRequestManager")
+  .withAutomaticReconnect()
+  .build();
 
-connection.on("SongRequested", song => {
-    adminDisplaySongs(false);
-    homeDisplaySongs(false);
+connection.on("ReceiveSongRequestUpdate", () => {
+  console.log("Received song request update");
+  homeDisplaySongs(false);
+  adminDisplaySongs(false);
 });
 
-connection.start()
-    .catch(err => console.error(err));
+connection
+  .start()
+  .then(() => console.log("SignalR Connected"))
+  .catch((err) => console.error(err));
