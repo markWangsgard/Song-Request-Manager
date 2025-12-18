@@ -4,6 +4,7 @@ using System.Text.Json;
 using DotNetEnv;
 using Sprache;
 using System.Text.Json.Nodes;
+using Microsoft.AspNetCore.SignalR;
 
 Env.Load();
 var builder = WebApplication.CreateBuilder(args);
@@ -22,7 +23,7 @@ app.UseCors(x => x.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
 app.MapHub<SongRequestManager>("/songRequestManager");
 
 var client = new HttpClient();
-var hub = new SongRequestManager();
+var hub = app.Services.GetRequiredService<IHubContext<SongRequestManager>>();
 string accessToken = "";
 DateTime accessTokenExpiresAt = DateTime.MinValue;
 var periodicTimer = new PeriodicTimer(TimeSpan.FromMinutes(25));
@@ -266,7 +267,7 @@ async Task removeSongAsync(string user, string songId)
         index = PlaylistManager.AllSongs.FindIndex(s => s.id == songId);
         PlaylistManager.AllSongs.RemoveAt(index);
     }
-    await hub.SendSongRequestUpdate();
+    await hub.Clients.All.SendAsync("ReceiveSongRequestUpdate");
 }
 
 
@@ -508,7 +509,7 @@ app.MapGet("/request-song/{user}/{songID}", async (string user, string songID) =
         }
     }
 
-    await hub.SendSongRequestUpdate();
+    await hub.Clients.All.SendAsync("ReceiveSongRequestUpdate");
 
     return Results.Json(new { songID, requests = PlaylistManager.getSongRequestCount(songID) });
 });
@@ -527,7 +528,7 @@ app.MapGet("/clear-requests", async () =>
     PlaylistManager.RequestedSongs.Clear();
     PlaylistManager.AllSongs.Clear();
     
-    await hub.SendSongRequestUpdate();
+    await hub.Clients.All.SendAsync("ReceiveSongRequestUpdate");
 
     return Results.Json(new { status = "cleared" });
 });
@@ -640,7 +641,7 @@ app.MapPost("/store-settings/{user}", async (string user, Settings settings) =>
             }
         }
 
-        await hub.SendSongRequestUpdate();
+        await hub.Clients.All.SendAsync("ReceiveSongRequestUpdate");
 
         return Results.Ok(PlaylistManager.settings);
     }
