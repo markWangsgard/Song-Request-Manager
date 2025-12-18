@@ -1,10 +1,4 @@
-import { getRequestedSongs, getUserRequests, searchSongs } from "./service.js";
-import {
-  addSongToPlaylist,
-  requestSong,
-  songsAddedToPlaylist,
-  userID,
-} from "./domain.js";
+import { logout } from "./service.js";
 import {
   currentPlaylist,
   currentUser,
@@ -32,6 +26,9 @@ logoElement.addEventListener("click", () => {
 });
 
 await loadSettingsFromApi();
+if (!currentUser || currentUser.error) {
+  await logout();
+}
 
 if (currentUser === null) {
   const loginWarningElement = document.getElementById("loginWarning");

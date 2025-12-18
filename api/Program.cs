@@ -276,7 +276,7 @@ app.MapGet("/", async () =>
     return $"Spotify API Proxy is running. Access Token: {accessToken}";
 });
 
-app.MapGet("/login/{user}", (string user, string returnTo = "http://127.0.0.1:5001/me") =>
+app.MapGet("/login/{user}", (string user, string returnTo = "https://song-request-manager.onrender.com/me") =>
 {
     var redirectUri = Uri.EscapeDataString(Environment.GetEnvironmentVariable("SPOTIFY_REDIRECT_URI"));
     string returnToUri = Uri.EscapeDataString(returnTo);

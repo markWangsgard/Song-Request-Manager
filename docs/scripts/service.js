@@ -71,22 +71,24 @@ export const getMe = async () => {
 };
 
 export const setSettings = async () => {
-  const settings = {
-    currentPlaylist,
-    numbOfAllowedRequests,
-    allowRepeats,
-    autoAdd,
-    selectedDays,
-    autoAddTime,
-  };
-  const jsonString = JSON.stringify(settings);
-  await fetch(`${myApiUrl}/store-settings/${userID}`, {
-    body: jsonString,
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  if (currentUser) {
+    const settings = {
+      currentPlaylist,
+      numbOfAllowedRequests,
+      allowRepeats,
+      autoAdd,
+      selectedDays,
+      autoAddTime,
+    };
+    const jsonString = JSON.stringify(settings);
+    await fetch(`${myApiUrl}/store-settings/${userID}`, {
+      body: jsonString,
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+  }
 };
 
 export const getSettings = async () => {
@@ -113,4 +115,4 @@ export const addSongToPlaylistAPI = async (playlistId, songId) => {
 
 export const clearRequestsAPI = async () => {
   await fetch(`${myApiUrl}/clear-requests`);
-}
+};
