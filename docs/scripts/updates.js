@@ -1,9 +1,11 @@
-import { homeDisplaySongs, adminDisplaySongs} from "./displayUpdates.js";
+import { homeDisplaySongs, adminDisplaySongs } from "./displayUpdates.js";
 import { myApiUrl } from "./constants.js";
 
 const signalR = globalThis.signalR;
 if (!signalR) {
-  console.error("SignalR client not found on global scope. Make sure 'scripts/signalr/signalr.js' is included before module scripts.");
+  console.error(
+    "SignalR client not found on global scope. Make sure 'scripts/signalr/signalr.js' is included before module scripts."
+  );
 } else {
   console.log("SignalR client loaded.");
 
@@ -13,9 +15,10 @@ if (!signalR) {
     .build();
 
   connection.on("ReceiveSongRequestUpdate", () => {
-    console.log("Received song request update");
-    homeDisplaySongs(false);
-    adminDisplaySongs(false);
+    const searchBarElement = document.getElementById("search");
+    // console.log(searchBarElement.value != "");
+    homeDisplaySongs(searchBarElement.value != "", searchBarElement.value);
+    adminDisplaySongs(searchBarElement.value != "", searchBarElement.value);
   });
 
   connection
