@@ -2,11 +2,13 @@ Todo:
 
 * add clear requests
 
+* real time updates
+
 * Setup auto add time
 
-* Refactor/review all code
+* Hidden button for admins?
 
-* real time updates
+* Refactor/review all code
 
 Complete?: 
 
