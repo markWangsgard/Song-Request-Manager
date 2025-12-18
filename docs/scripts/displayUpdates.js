@@ -13,7 +13,7 @@ import {
 export const homeDisplaySongs = async (searching, query = "") => {
   const searchBarElement = document.getElementById("search");
   const resultsContainer = document.getElementById("results");
-// debugger;
+  // debugger;
   await loadSettingsFromApi();
 
   document.getElementById("SectionHeader").textContent = searching
@@ -86,10 +86,6 @@ export const homeDisplaySongs = async (searching, query = "") => {
 
       await requestSong(result.id);
 
-      homeDisplaySongs(false);
-    });
-
-    resultElement.addEventListener("updateRequestedSongs", () => {
       homeDisplaySongs(false);
     });
   });
@@ -215,14 +211,8 @@ export const adminDisplaySongs = async (searching, query = "") => {
         searchBarElement.value = "";
 
         await requestSong(result.id);
-        dispatchEvent(updateRequestedSongs);
-
         adminDisplaySongs(false);
       }
-    });
-
-    resultElement.addEventListener("updateRequestedSongs", () => {
-      adminDisplaySongs(false);
     });
   });
 };
