@@ -1,9 +1,10 @@
 import { homeDisplaySongs, adminDisplaySongs} from "./displayUpdates.js";
+import { myApiUrl } from "./constants.js";
 
 console.log(signalR);
 
 const connection = new signalR.HubConnectionBuilder()
-  .withUrl("/songRequestManager")
+  .withUrl(`${myApiUrl}/songRequestManager`)
   .withAutomaticReconnect()
   .build();
 

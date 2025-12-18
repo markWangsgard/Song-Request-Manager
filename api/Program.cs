@@ -18,7 +18,7 @@ builder.Services.AddSignalR();
 
 
 var app = builder.Build();
-app.UseCors(x => x.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
+app.UseCors(x => x.AllowAnyHeader().WithOrigins("http://127.0.0.1:5500", "https://markwangsgard.github.io/Song-Request-Manager/").AllowAnyMethod().AllowCredentials());
 app.MapHub<SongRequestManager>("/songRequestManager");
 
 var client = new HttpClient();
