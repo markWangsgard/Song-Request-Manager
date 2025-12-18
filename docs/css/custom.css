@@ -11,6 +11,16 @@
   width: 100%; /* Default for mobile */
 }
 
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
 @media (min-width: 576px) {
   .responsive-width {
     width: 75%; /* 75% width on small screens and above */

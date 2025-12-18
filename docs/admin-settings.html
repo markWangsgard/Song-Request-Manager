@@ -135,7 +135,7 @@
           <div class="d-flex justify-content-center mt-3 mb-2">
             <label class="" for="requestLimit">Number of Songs: </label>
             <input
-              class="ms-3 btn btn-outline-primary"
+              class="ms-3 w-25 btn btn-outline-primary"
               type="number"
               name="requestLimit"
               id="requestLimit"
@@ -162,6 +162,7 @@
         <!-- Auto Add -->
         <div class="d-flex flex-column align-items-center">
           <h3>Auto Add</h3>
+          <!-- slider -->
           <div class="mb-2">
             <label class="switch">
               <input type="checkbox" id="autoAdd" />
@@ -170,6 +171,11 @@
             <label for="autoAdd">Auto Add</label>
           </div>
           <div id="autoAddSelection" class="visually-hidden">
+          <div class="mb-2">
+            <label for="autoAddQuantity" class="fs-5">Quantity</label>
+            <input type="number" id="autoAddQuantity" class="ms-3 w-25 btn btn-outline-primary" value="3" min="1"/>
+          </div>
+          <!-- time selection -->
             <h5>Set Time</h5>
             <div>
               <div class="container m-4">

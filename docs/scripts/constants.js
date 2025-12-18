@@ -11,6 +11,7 @@ export let currentPlaylist = null;
 export let numbOfAllowedRequests = 3;
 export let allowRepeats = true;
 export let autoAdd = false;
+export let autoAddQuantity = 3;
 export const selectedDays = {
   monday: false,
   tuesday: false,
@@ -64,6 +65,10 @@ export const setAutoAdd = (auto) => {
   autoAdd = auto;
   setSettings();
 };
+export const setAutoAddQuantity = (quantity) => {
+  autoAddQuantity = quantity;
+  setSettings();
+}
 export const setMonday = (monday) => {
   selectedDays.monday = monday;
   setSettings();

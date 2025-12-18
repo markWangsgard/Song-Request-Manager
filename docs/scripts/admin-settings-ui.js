@@ -30,16 +30,17 @@ const loginButton = document.getElementById("signIn");
 const selectPlaylistButton = document.getElementById("selectPlaylist");
 const userNameElement = document.getElementById("userName");
 const requestLimitInputElement = document.getElementById("requestLimit");
-const autoAddSwitchElement = document.getElementById("autoAdd");
 const allowRepeatsSwitchElement = document.getElementById("allowRepeats");
-const tuesdayCheckboxElement = document.getElementById("dayTuesday");
+const autoAddSwitchElement = document.getElementById("autoAdd");
+const autoAddQuantityInputElement = document.getElementById("autoAddQuantity");
 const mondayCheckboxElement = document.getElementById("dayMonday");
-const thursdayCheckboxElement = document.getElementById("dayThursday");
+const tuesdayCheckboxElement = document.getElementById("dayTuesday");
 const wednesdayCheckboxElement = document.getElementById("dayWednesday");
-const saturdayCheckboxElement = document.getElementById("daySaturday");
+const thursdayCheckboxElement = document.getElementById("dayThursday");
 const fridayCheckboxElement = document.getElementById("dayFriday");
-const timePickerElement = document.getElementById("timePicker");
+const saturdayCheckboxElement = document.getElementById("daySaturday");
 const sundayCheckboxElement = document.getElementById("daySunday");
+const timePickerElement = document.getElementById("timePicker");
 const cancelChoicePlaylistButton = document.getElementById(
   "CancelPlaylistSelect"
 );
@@ -95,6 +96,10 @@ const addAllEventListeners = async () => {
     } else {
       autoAddSelectionElement.classList.add("visually-hidden");
     }
+  });
+
+  autoAddQuantityInputElement.addEventListener("input", () => {
+    setNumbOfAllowedRequests(autoAddQuantityInputElement.value);
   });
 
   mondayCheckboxElement.addEventListener("input", () => {

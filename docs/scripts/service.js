@@ -77,6 +77,7 @@ export const setSettings = async () => {
       numbOfAllowedRequests,
       allowRepeats,
       autoAdd,
+      autoAddQuantity,
       selectedDays,
       autoAddTime,
     };
