@@ -13,7 +13,7 @@ import {
 export const homeDisplaySongs = async (searching, query = "") => {
   const searchBarElement = document.getElementById("search");
   const resultsContainer = document.getElementById("results");
-
+// debugger;
   await loadSettingsFromApi();
 
   document.getElementById("SectionHeader").textContent = searching
@@ -85,13 +85,12 @@ export const homeDisplaySongs = async (searching, query = "") => {
       searchBarElement.value = "";
 
       await requestSong(result.id);
-      dispatchEvent(updateRequestedSongs);
 
-      displaySongs(false);
+      homeDisplaySongs(false);
     });
 
     resultElement.addEventListener("updateRequestedSongs", () => {
-      displaySongs(false);
+      homeDisplaySongs(false);
     });
   });
 };
@@ -207,7 +206,7 @@ export const adminDisplaySongs = async (searching, query = "") => {
         currentUser !== null
       ) {
         await addSongToPlaylist(currentPlaylist, result);
-        displaySongs();
+        adminDisplaySongs();
       }
     });
 
@@ -218,12 +217,12 @@ export const adminDisplaySongs = async (searching, query = "") => {
         await requestSong(result.id);
         dispatchEvent(updateRequestedSongs);
 
-        displaySongs(false);
+        adminDisplaySongs(false);
       }
     });
 
     resultElement.addEventListener("updateRequestedSongs", () => {
-      displaySongs(false);
+      adminDisplaySongs(false);
     });
   });
 };

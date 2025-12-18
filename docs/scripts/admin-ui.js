@@ -16,8 +16,6 @@ const searchBarElement = document.getElementById("search");
 const resultsContainer = document.getElementById("results");
 let typingTimer;
 
-const updateRequestedSongs = new Event("updateRequestedSongs");
-
 searchBarElement.addEventListener("input", async (event) => {
   clearTimeout(typingTimer);
 
