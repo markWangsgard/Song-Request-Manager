@@ -250,6 +250,25 @@ async Task RefreshAccessToken(string user)
     JsonObjectResponse.TryGetPropertyValue("access_token", out JsonNode jsonNode);
     PlaylistManager.Users[user].userAccessToken = jsonNode.ToString();
 }
+void removeSong(string user, string songId)
+{
+    int index;
+    SongData song;
+
+    song = PlaylistManager.RequestedSongs[user].Find(s => s.id == songId);
+    PlaylistManager.RequestedSongs[user].Remove(song);
+
+    if (PlaylistManager.RequestedSongs[user].Count() <= 0)
+    {
+        PlaylistManager.RequestedSongs.Remove(user);
+    }
+
+    if (PlaylistManager.getSongRequestCount(songId) == 0)
+    {
+        index = PlaylistManager.AllSongs.FindIndex(s => s.id == songId);
+        PlaylistManager.AllSongs.RemoveAt(index);
+    }
+}
 
 
 app.MapGet("/", async () =>
@@ -506,25 +525,11 @@ app.MapGet("/request-song/{user}/{songID}", async (string user, string songID) =
 app.MapGet("/remove-song/{user}/{songId}", (string user, string songId) =>
 {
 
-    int index;
-    SongData song;
-
-    song = PlaylistManager.RequestedSongs[user].Find(s => s.id == songId);
-    PlaylistManager.RequestedSongs[user].Remove(song);
-
-    if (PlaylistManager.RequestedSongs[user].Count() <= 0)
-    {
-        PlaylistManager.RequestedSongs.Remove(user);
-    }
-
-    if (PlaylistManager.getSongRequestCount(songId) == 0)
-    {
-        index = PlaylistManager.AllSongs.FindIndex(s => s.id == songId);
-        PlaylistManager.AllSongs.RemoveAt(index);
-    }
+    removeSong(user, songId);
 
     return Task.FromResult(Results.Json(new { user, status = "removed" }));
 });
+
 
 app.MapGet("/clear-requests", () =>
 {
@@ -626,7 +631,8 @@ app.MapPost("/store-settings/{user}", (string user, Settings settings) =>
                     {
                         while (PlaylistManager.RequestedSongs[newUser].Count > settings.numbOfAllowedRequests)
                         {
-                            PlaylistManager.RequestedSongs[newUser].RemoveAt(PlaylistManager.RequestedSongs[newUser].Count - 1);
+                            string songId = PlaylistManager.RequestedSongs[newUser][PlaylistManager.RequestedSongs[newUser].Count - 1].id;
+                            removeSong(newUser, songId);
                         }
                     }
 
