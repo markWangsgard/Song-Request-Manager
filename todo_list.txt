@@ -1,7 +1,5 @@
 Todo:
 
-* debug why settings aren't updating
-
 * add clear requests
 
 * Setup auto add time
@@ -11,6 +9,8 @@ Todo:
 * real time updates
 
 Complete?: 
+
+* debug why settings aren't updating
 
 * Handle error w/ access token - I think it's fixed...
 
