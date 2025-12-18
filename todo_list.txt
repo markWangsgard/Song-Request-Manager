@@ -1,7 +1,5 @@
 Todo:
 
-* add clear requests
-
 * real time updates
 
 * Setup auto add time
@@ -11,6 +9,8 @@ Todo:
 * Refactor/review all code
 
 Complete?: 
+
+* add clear requests
 
 * debug why settings aren't updating
 

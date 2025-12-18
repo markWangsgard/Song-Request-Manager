@@ -110,3 +110,7 @@ export const addSongToPlaylistAPI = async (playlistId, songId) => {
     `${myApiUrl}/playlist/${playlistId}/${userID}/add-song/${songId}`
   );
 };
+
+export const clearRequestsAPI = async () => {
+  await fetch(`${myApiUrl}/clear-requests`);
+}

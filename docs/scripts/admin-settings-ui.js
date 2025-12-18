@@ -23,7 +23,7 @@ import {
   isAdmin,
 } from "./constants.js";
 import { songsAddedToPlaylist, userID } from "./domain.js";
-import { getPlaylists, login, setSettings, logout } from "./service.js";
+import { getPlaylists, login, setSettings, logout, clearRequestsAPI } from "./service.js";
 
 const bodyElement = document.getElementById("body");
 const loginButton = document.getElementById("signIn");
@@ -46,6 +46,10 @@ const cancelChoicePlaylistButton = document.getElementById(
 const selectChoicePlaylistButton = document.getElementById(
   "SelectPlaylistSelect"
 );
+const popupElement = document.getElementById("confirmationPopupContainer");
+const clearRequestsButton = document.getElementById("clearRequests");
+const confirmationCancelButton = document.getElementById("cancelClearRequests");
+const confirmationConfirmButton = document.getElementById("confirmClearRequests");
 let tempSelectedPlaylist = currentPlaylist;
 
 const addAllEventListeners = async () => {
@@ -138,6 +142,22 @@ const addAllEventListeners = async () => {
     bodyElement.classList.remove("no-scroll");
     setCurrentPlaylist(tempSelectedPlaylist);
     updatePlaylist();
+  });
+
+  clearRequestsButton.addEventListener("click", async () => {
+    popupElement.classList.remove("d-none");
+    bodyElement.classList.add("no-scroll");
+  });
+
+  confirmationCancelButton.addEventListener("click", () => {
+    popupElement.classList.add("d-none");
+    bodyElement.classList.remove("no-scroll");
+  });
+
+  confirmationConfirmButton.addEventListener("click", async () => {
+    await clearRequestsAPI();
+    popupElement.classList.add("d-none");
+    bodyElement.classList.remove("no-scroll");
   });
 };
 
