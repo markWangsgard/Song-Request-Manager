@@ -1,6 +1,6 @@
 class CowboyLoader extends HTMLElement {
   connectedCallback() {
-    const size  = this.getAttribute("size")  || "220";
+    const size = this.getAttribute("size") || "220";
     const speed = this.getAttribute("speed") || "3s";
     const color = this.getAttribute("color") || "#51c978";
 

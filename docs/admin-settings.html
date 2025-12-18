@@ -3,38 +3,47 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    
+
     <link rel="stylesheet" href="./css/custom.css" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-    href="https://fonts.googleapis.com/css2?family=Lobster&display=swap"
-    rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Lobster&display=swap"
+      rel="stylesheet"
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <script type="module" src="scripts/admin-settings-ui.js"></script>
     <script type="module" src="scripts/cowboy-loading.js"></script>
-    
+
     <link rel="icon" type="image/x-icon" href="images/favicon.png" />
     <title>Snow College Western Swing</title>
   </head>
   <body class="d-flex flex-column" id="body">
     <header>
       <img
-      src="images/logo2.png"
-      alt="Snow College Western Swing Logo"
-      id="logo"
-      class="mx-auto d-block mt-5 invert"
-      style="width: 200px; height: auto"
+        src="images/logo2.png"
+        alt="Snow College Western Swing Logo"
+        id="logo"
+        class="mx-auto d-block mt-5 invert"
+        style="width: 200px; height: auto"
       />
     </header>
     <main
-    class="flex-grow-1 flex text-center justify-contet-center align-items-center"
-    id="main"
+      class="flex-grow-1 flex text-center justify-contet-center align-items-center"
+      id="main"
     >
-    <cowboy-loader size="200" speed="2.6s" color="white" id="loader" class="mb-3"></cowboy-loader>
-    <div id="loginSection" class="d-flex d-none flex-column align-items-center">
-      <h3>Sign In</h3>
-      <button id="signIn" class="btn btn-outline-primary mt-3">
+      <cowboy-loader
+        size="200"
+        speed="2.6s"
+        color="white"
+        id="loader"
+        class="mb-3"
+      ></cowboy-loader>
+      <div
+        id="loginSection"
+        class="d-flex d-none flex-column align-items-center"
+      >
+        <h3>Sign In</h3>
+        <button id="signIn" class="btn btn-outline-primary mt-3">
           Sign In
         </button>
         <h5 class="mt-3" id="userName">Signed in as ...</h5>
@@ -43,42 +52,39 @@
       <div id="allSettings" class="d-none">
         <div class="d-flex flex-column align-items-center">
           <h3>Select Playlist</h3>
-          <button
-          class="mt-3 btn btn-outline-primary"
-          id="selectPlaylist"
-          >
-          Select Playlist
-        </button>
-        <h5 class="mt-3 visually-hidden" id="playlistSelectedText">
-          Playlist selected: ...
-        </h5>
+          <button class="mt-3 btn btn-outline-primary" id="selectPlaylist">
+            Select Playlist
+          </button>
+          <h5 class="mt-3 visually-hidden" id="playlistSelectedText">
+            Playlist selected: ...
+          </h5>
           <hr class="w-50" />
         </div>
-        
+
         <div
-        id="selectPlaylistContainer"
+          id="selectPlaylistContainer"
           style="--bs-bg-opacity: 0.75"
           class="d-none bg-black vw-100 vh-100 fixed-top d-flex justify-content-center align-items-center"
-          >
+        >
           <div class="bg-body w-75 h-75 rounded-5 d-flex flex-column">
             <h1 class="mt-4 vh-25">Choose Playlist</h1>
             <div class="flex-grow h-100 overflow-auto" id="playlistList">
               <div
-              id="playlistExampleElement"
-              class="bg-body rounded-5 p-3 m-3 d-flex justify-content-center align-items-center"
+                id="playlistExampleElement"
+                class="bg-body rounded-5 p-3 m-3 d-flex justify-content-center align-items-center"
               >
                 <img
-                src="https://i.scdn.co/image/ab67616d00004851f00a1acf866539632b187ea0"
+                  src="https://i.scdn.co/image/ab67616d00004851f00a1acf866539632b187ea0"
                   alt="Country Music"
-                  />
+                />
                 <h4 class="ms-4">Country Music</h4>
               </div>
               <div
-              id="playlistExampleElement"
-              class="rounded-5 p-3 m-3 d-flex justify-content-center align-items-center"
+                id="playlistExampleElement"
+                class="rounded-5 p-3 m-3 d-flex justify-content-center align-items-center"
               >
-              <img
-              src="https://i.scdn.co/image/ab67616d00004851f00a1acf866539632b187ea0"
+                <img
+                  src="https://i.scdn.co/image/ab67616d00004851f00a1acf866539632b187ea0"
                   alt="Country Music"
                 />
                 <h4 class="ms-4">Country Music</h4>
@@ -94,7 +100,7 @@
             </div>
           </div>
         </div>
-        
+
         <div class="d-flex flex-column align-items-center">
           <h3>Song Request Limit</h3>
           <div class="d-flex justify-content-center mt-3 mb-2">
@@ -106,8 +112,8 @@
               id="requestLimit"
               min="1"
               value="1"
-              />
-            </div>
+            />
+          </div>
           <hr class="w-50" />
         </div>
         <div class="d-flex flex-column align-items-center">
@@ -135,14 +141,14 @@
             <div>
               <div class="container m-4">
                 <fieldset
-                class="d-flex mt-2 mb-3 row justify-content-center"
-                aria-labelledby="daysLabel"
-                style="gap: 0.5rem"
+                  class="d-flex mt-2 mb-3 row justify-content-center"
+                  aria-labelledby="daysLabel"
+                  style="gap: 0.5rem"
                 >
                   <legend id="daysLabel" class="visually-hidden">
                     Select days of the week
                   </legend>
-                  
+
                   <div class="form-check col-3">
                     <input
                       class="form-check-input"
@@ -150,21 +156,21 @@
                       name="days[]"
                       value="monday"
                       id="dayMonday"
-                      />
-                      <label class="form-check-label" for="dayMonday"
+                    />
+                    <label class="form-check-label" for="dayMonday"
                       >Monday</label
-                      >
-                    </div>
-                    
-                    <div class="form-check col-3">
+                    >
+                  </div>
+
+                  <div class="form-check col-3">
                     <input
-                    class="form-check-input"
-                    type="checkbox"
-                    name="days[]"
+                      class="form-check-input"
+                      type="checkbox"
+                      name="days[]"
                       value="tuesday"
                       id="dayTuesday"
-                      />
-                      <label class="form-check-label" for="dayTuesday"
+                    />
+                    <label class="form-check-label" for="dayTuesday"
                       >Tuesday</label
                     >
                   </div>
@@ -176,10 +182,10 @@
                       name="days[]"
                       value="wednesday"
                       id="dayWednesday"
-                      />
-                      <label class="form-check-label" for="dayWednesday"
+                    />
+                    <label class="form-check-label" for="dayWednesday"
                       >Wednesday</label
-                      >
+                    >
                   </div>
 
                   <div class="form-check col-3">
@@ -189,67 +195,64 @@
                       name="days[]"
                       value="thursday"
                       id="dayThursday"
-                      />
-                      <label class="form-check-label" for="dayThursday"
+                    />
+                    <label class="form-check-label" for="dayThursday"
                       >Thursday</label
                     >
                   </div>
-                  
+
                   <div class="form-check col-3">
                     <input
-                    class="form-check-input"
-                    type="checkbox"
+                      class="form-check-input"
+                      type="checkbox"
                       name="days[]"
                       value="friday"
                       id="dayFriday"
-                      />
-                      <label class="form-check-label" for="dayFriday"
+                    />
+                    <label class="form-check-label" for="dayFriday"
                       >Friday</label
-                      >
-                    </div>
-                    
-                    <div class="form-check col-3">
-                      <input
+                    >
+                  </div>
+
+                  <div class="form-check col-3">
+                    <input
                       class="form-check-input"
                       type="checkbox"
                       name="days[]"
                       value="saturday"
                       id="daySaturday"
-                      />
-                      <label class="form-check-label" for="daySaturday"
+                    />
+                    <label class="form-check-label" for="daySaturday"
                       >Saturday</label
                     >
                   </div>
-                  
+
                   <div class="form-check col-3">
                     <input
-                    class="form-check-input"
-                    type="checkbox"
-                    name="days[]"
-                    value="sunday"
-                    id="daySunday"
+                      class="form-check-input"
+                      type="checkbox"
+                      name="days[]"
+                      value="sunday"
+                      id="daySunday"
                     />
                     <label class="form-check-label" for="daySunday"
-                    >Sunday</label
+                      >Sunday</label
                     >
                   </div>
                 </fieldset>
               </div>
-              
+
               <input
-              class="p-2 rounded bg-body border-primary text-primary color-primary"
-              type="time"
-              name="timePicker"
-              id="timePicker"
+                class="p-2 rounded bg-body border-primary text-primary color-primary"
+                type="time"
+                name="timePicker"
+                id="timePicker"
               />
             </div>
           </div>
           <hr class="w-50" />
         </div>
       </div>
-      
-      
     </main>
   </body>
-  </html>
-  
+</html>

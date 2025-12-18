@@ -168,7 +168,9 @@ const updatePlaylist = () => {
   );
   // console.log(currentPlaylist);
   if (currentPlaylist) {
-    selectedPlaylistTextElement.textContent = `Playlist selected: ${currentPlaylist.Name ?? currentPlaylist.name}`;
+    selectedPlaylistTextElement.textContent = `Playlist selected: ${
+      currentPlaylist.Name ?? currentPlaylist.name
+    }`;
     selectedPlaylistTextElement.classList.remove("visually-hidden");
   } else {
     selectedPlaylistTextElement.classList.add("visually-hidden");

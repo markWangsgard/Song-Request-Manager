@@ -1,6 +1,15 @@
 import { getRequestedSongs, getUserRequests, searchSongs } from "./service.js";
-import { addSongToPlaylist, requestSong, songsAddedToPlaylist, userID } from "./domain.js";
-import { currentPlaylist, currentUser, loadSettingsFromApi } from "./constants.js";
+import {
+  addSongToPlaylist,
+  requestSong,
+  songsAddedToPlaylist,
+  userID,
+} from "./domain.js";
+import {
+  currentPlaylist,
+  currentUser,
+  loadSettingsFromApi,
+} from "./constants.js";
 
 const searchBarElement = document.getElementById("search");
 const resultsContainer = document.getElementById("results");
@@ -20,7 +29,7 @@ searchBarElement.addEventListener("input", async (event) => {
 
 const logoElement = document.getElementById("logo");
 logoElement.addEventListener("click", () => {
-  window.location.href = "./admin-settings.html"
+  window.location.href = "./admin-settings.html";
 });
 
 const displaySongs = async (searching, query = "") => {
@@ -74,9 +83,11 @@ const displaySongs = async (searching, query = "") => {
       }`;
     }
 
-    const addOrCheck = songsAddedToPlaylist.includes(result.id) ? "check" : "add-icon";
+    const addOrCheck = songsAddedToPlaylist.includes(result.id)
+      ? "check"
+      : "add-icon";
     const addIconElement = document.createElement("img");
-    addIconElement.id = `add-or-check-${result.id}`
+    addIconElement.id = `add-or-check-${result.id}`;
     addIconElement.src = `images/${addOrCheck}-primary.svg`;
     addIconElement.alt = "Add Song To Playlist";
     addIconElement.style.width = "50px";
@@ -123,21 +134,23 @@ const displaySongs = async (searching, query = "") => {
     });
 
     addIconElement.addEventListener("click", async () => {
-      if (addOrCheck === "add-icon" && currentPlaylist !== null && currentUser !== null)
-      {
+      if (
+        addOrCheck === "add-icon" &&
+        currentPlaylist !== null &&
+        currentUser !== null
+      ) {
         await addSongToPlaylist(currentPlaylist, result);
         displaySongs();
       }
     });
 
     resultElement.addEventListener("click", async (e) => {
-      if (e.target.id !== `add-or-check-${result.id}`)
-      {
+      if (e.target.id !== `add-or-check-${result.id}`) {
         searchBarElement.value = "";
-        
+
         await requestSong(result.id);
         dispatchEvent(updateRequestedSongs);
-        
+
         displaySongs(false);
       }
     });
@@ -148,18 +161,13 @@ const displaySongs = async (searching, query = "") => {
   });
 };
 
-
-
 await loadSettingsFromApi();
 
-if (currentUser === null)
-{
+if (currentUser === null) {
   const loginWarningElement = document.getElementById("loginWarning");
-  loginWarningElement.classList.remove("d-none")
-}
-else if (currentPlaylist === null)
-{
-  const playlistWarningElement = document.getElementById("playlistWarning")
+  loginWarningElement.classList.remove("d-none");
+} else if (currentPlaylist === null) {
+  const playlistWarningElement = document.getElementById("playlistWarning");
   playlistWarningElement.classList.remove("d-none");
 }
 

@@ -94,7 +94,7 @@ export const getSettings = async () => {
   const settings = await response.json();
   const me = await getMe();
   const updatedSettings = { ...settings, isAdmin: me !== null };
-  
+
   setUser(me);
   return updatedSettings;
 };

@@ -32,12 +32,12 @@ const displaySongs = async (searching, query = "") => {
     resultElement.classList.add("d-flex");
     resultElement.classList.add("justify-content-sm-center");
     resultElement.classList.add("align-items-center");
-      resultElement.classList.add("ms-4");
-      resultElement.classList.add("p-3");
-      resultElement.classList.add("responsive-width");
-      resultElement.classList.add("me-4");
-      resultElement.classList.add("bg-secondary");
-      resultElement.classList.add("rounded");
+    resultElement.classList.add("ms-4");
+    resultElement.classList.add("p-3");
+    resultElement.classList.add("responsive-width");
+    resultElement.classList.add("me-4");
+    resultElement.classList.add("bg-secondary");
+    resultElement.classList.add("rounded");
 
     const imgElement = document.createElement("img");
     imgElement.style.width = "75px";
