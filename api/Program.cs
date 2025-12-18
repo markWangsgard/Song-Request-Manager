@@ -1,14 +1,9 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using System.Collections.Generic;
-using System.Linq;
 using DotNetEnv;
 using Sprache;
-using System.Text.Json.Serialization;
 using System.Text.Json.Nodes;
-using System;
-using Microsoft.AspNetCore.Mvc;
 
 Env.Load();
 var builder = WebApplication.CreateBuilder(args);
@@ -19,12 +14,15 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddCors();
+builder.Services.AddSignalR();
 
 
 var app = builder.Build();
 app.UseCors(x => x.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
+app.MapHub<SongRequestManager>("/songRequestManager");
 
 var client = new HttpClient();
+var hub = new SongRequestManager();
 string accessToken = "";
 DateTime accessTokenExpiresAt = DateTime.MinValue;
 var periodicTimer = new PeriodicTimer(TimeSpan.FromMinutes(25));
@@ -268,6 +266,7 @@ void removeSong(string user, string songId)
         index = PlaylistManager.AllSongs.FindIndex(s => s.id == songId);
         PlaylistManager.AllSongs.RemoveAt(index);
     }
+    hub.SendSongRequestUpdate();
 }
 
 
@@ -450,16 +449,6 @@ app.MapGet("/song/{songID}", async (HttpContext http) =>
     return Results.Json(song);
 });
 
-app.MapGet("/artist/{artistID}", async (string artistID) =>
-{
-    accessToken = await AccessToken();
-    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-    var response = client.GetAsync($"https://api.spotify.com/v1/artists/{artistID}/");
-    var content = response.Result.Content.ReadAsStringAsync().Result;
-
-    return Results.Content(content, "application/json");
-});
-
 app.MapGet("/search/{query}", async (string query) =>
 {
     accessToken = await AccessToken();
@@ -519,6 +508,8 @@ app.MapGet("/request-song/{user}/{songID}", async (string user, string songID) =
         }
     }
 
+    hub.SendSongRequestUpdate();
+
     return Results.Json(new { songID, requests = PlaylistManager.getSongRequestCount(songID) });
 });
 
@@ -535,6 +526,9 @@ app.MapGet("/clear-requests", () =>
 {
     PlaylistManager.RequestedSongs.Clear();
     PlaylistManager.AllSongs.Clear();
+    
+    hub.SendSongRequestUpdate();
+
     return Results.Json(new { status = "cleared" });
 });
 
@@ -645,6 +639,8 @@ app.MapPost("/store-settings/{user}", (string user, Settings settings) =>
                 }
             }
         }
+
+        hub.SendSongRequestUpdate();
 
         return Results.Ok(PlaylistManager.settings);
     }

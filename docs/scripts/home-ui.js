@@ -17,7 +17,7 @@ searchBarElement.addEventListener("input", async (event) => {
   }, 100);
 });
 
-const displaySongs = async (searching, query = "") => {
+export const displaySongs = async (searching, query = "") => {
   document.getElementById("SectionHeader").textContent = searching
     ? `Search Results for "${query}"`
     : `Requested Songs`;

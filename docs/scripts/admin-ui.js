@@ -32,7 +32,7 @@ logoElement.addEventListener("click", () => {
   window.location.href = "./admin-settings.html";
 });
 
-const displaySongs = async (searching, query = "") => {
+export const displaySongs = async (searching, query = "") => {
   await loadSettingsFromApi();
 
   document.getElementById("SectionHeader").textContent = searching
