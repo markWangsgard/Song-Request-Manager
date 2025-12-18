@@ -4,7 +4,7 @@ import { displaySongs as adminDisplaySongs } from "./admin-ui.js";
 import { displaySongs as homeDisplaySongs} from "./home-ui.js";
 
 const connection = new signalR.HubConnectionBuilder()
-    .withUrl("/songHub")
+    .withUrl("/songRequestManager")
     .withAutomaticReconnect()
     .build();
 
