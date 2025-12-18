@@ -116,3 +116,16 @@ export const addSongToPlaylistAPI = async (playlistId, songId) => {
 export const clearRequestsAPI = async () => {
   await fetch(`${myApiUrl}/clear-requests`);
 };
+
+export const startKeepAlivePing = () => {
+  const myWorker = new Worker("./scripts/worker.js");
+
+  myWorker.postMessage({url: myApiUrl});
+
+  myWorker.onerror = (e) => {
+    console.error("Worker error message:", e.message);
+    console.error("Worker error filename:", e.filename);
+    console.error("Worker error line:", e.lineno);
+    console.error("Worker error column:", e.colno);
+  };
+};

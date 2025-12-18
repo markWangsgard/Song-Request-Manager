@@ -23,7 +23,7 @@ import {
   isAdmin,
 } from "./constants.js";
 import { songsAddedToPlaylist, userID } from "./domain.js";
-import { getPlaylists, login, setSettings, logout, clearRequestsAPI } from "./service.js";
+import { getPlaylists, login, setSettings, logout, clearRequestsAPI, startKeepAlivePing } from "./service.js";
 
 const bodyElement = document.getElementById("body");
 const loginButton = document.getElementById("signIn");
@@ -304,3 +304,4 @@ const loginSectionElement = document.getElementById("loginSection");
 loginSectionElement.classList.remove("d-none");
 
 await setSettings();
+startKeepAlivePing();
