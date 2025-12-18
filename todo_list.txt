@@ -1,5 +1,7 @@
 Todo:
 
+* Javascript function to make sure api stays awake during swing time
+
 * Setup auto add time
 
 * Hidden button for admins?
