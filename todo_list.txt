@@ -1,7 +1,5 @@
 Todo:
 
-* real time updates
-
 * Setup auto add time
 
 * Hidden button for admins?
@@ -9,6 +7,8 @@ Todo:
 * Refactor/review all code
 
 Complete?: 
+
+* real time updates
 
 * add clear requests
 
