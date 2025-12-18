@@ -75,6 +75,7 @@ const addAllEventListeners = async () => {
   });
 
   requestLimitInputElement.addEventListener("input", () => {
+    console.log(currentPlaylist);
     setNumbOfAllowedRequests(requestLimitInputElement.value);
   });
 
@@ -148,11 +149,10 @@ const updateUser = () => {
     userNameElement.textContent = `Signed in as ${user.displayName}`;
     const loginButton = document.getElementById("signIn");
     loginButton.textContent = "Sign Out";
-    if (isAdmin)
-    {
+    if (isAdmin) {
       allSettingsElement.classList.remove("d-none");
     }
-    
+
     setUser(user);
   } else {
     const loginButton = document.getElementById("signIn");
@@ -166,8 +166,9 @@ const updatePlaylist = () => {
   const selectedPlaylistTextElement = document.getElementById(
     "playlistSelectedText"
   );
-  if (currentPlaylist !== null) {
-    selectedPlaylistTextElement.textContent = `Playlist selected: ${currentPlaylist.Name}`;
+  // console.log(currentPlaylist);
+  if (currentPlaylist) {
+    selectedPlaylistTextElement.textContent = `Playlist selected: ${currentPlaylist.Name ?? currentPlaylist.name}`;
     selectedPlaylistTextElement.classList.remove("visually-hidden");
   } else {
     selectedPlaylistTextElement.classList.add("visually-hidden");
@@ -205,19 +206,19 @@ const displayPlaylists = async () => {
 
     const playlistListElement = document.getElementById("playlistList");
     playlistListElement.replaceChildren();
-    
+
     // <div id="playlistExampleElement" class="rounded-5 p-3 m-3 d-flex justify-content-center align-items-center">
     //           <img src="https://i.scdn.co/image/ab67616d00004851f00a1acf866539632b187ea0" alt="Country Music">
     //           <h4 class="ms-4">Country Music</h4>
     //         </div>
-    
+
     playlists.forEach((p) => {
       // console.log(p);
       const playlistElement = document.createElement("div");
       if (tempSelectedPlaylist !== null && p.Id === tempSelectedPlaylist.Id) {
         playlistElement.classList.add("bg-secondary");
       }
-      console.log(tempSelectedPlaylist);
+      // console.log(tempSelectedPlaylist);
       playlistElement.classList.add("rounded-5");
       playlistElement.classList.add("p-3");
       playlistElement.classList.add("m-3");
@@ -268,16 +269,16 @@ const displayPlaylists = async () => {
   }
 };
 
-
 addAllEventListeners();
 await loadSettingsFromApi();
-console.log(currentUser);
+// console.log(currentUser);
+if (!currentUser || currentUser.error) {
+  await logout();
+}
 loadSettings();
 const loaderElement = document.getElementById("loader");
 loaderElement.classList.add("d-none");
 const loginSectionElement = document.getElementById("loginSection");
 loginSectionElement.classList.remove("d-none");
-// if (currentUser === null) {
-//   await login();
-// }
+
 await setSettings();

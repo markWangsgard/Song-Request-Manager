@@ -72,7 +72,6 @@ export const getMe = async () => {
 
 export const setSettings = async () => {
   const settings = {
-    currentUser,
     currentPlaylist,
     numbOfAllowedRequests,
     allowRepeats,
@@ -82,7 +81,7 @@ export const setSettings = async () => {
   };
   const jsonString = JSON.stringify(settings);
   await fetch(`${myApiUrl}/store-settings/${userID}`, {
-    body: JSON.stringify(settings),
+    body: jsonString,
     method: "POST",
     headers: {
       "Content-Type": "application/json",
