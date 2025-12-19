@@ -1,4 +1,4 @@
-import { logout, startKeepAlivePing } from "./service.js";
+import { logout } from "./service.js";
 import {
   currentPlaylist,
   currentUser,
@@ -40,4 +40,3 @@ if (currentUser === null) {
 
 // displaySongs(true, "travlin");
 displaySongs(false);
-startKeepAlivePing();

@@ -44,7 +44,6 @@ export const RemoveSong = async (userID, songID) => {
 };
 
 export const login = async () => {
-  // console.log("login");
   window.location = `${myApiUrl}/login/${userID}?returnTo=${encodeURIComponent(
     window.location.href
   )}`;
@@ -93,14 +92,30 @@ export const setSettings = async () => {
   }
 };
 
+// Debounced scheduler for frequent UI-driven calls. Does not return a promise.
+const debounce = (fn, wait = 500) => {
+  let t;
+  return (...args) => {
+    clearTimeout(t);
+    t = setTimeout(() => {
+      try {
+        fn(...args);
+      } catch (e) {
+        console.error("debounced setSettings error", e);
+      }
+    }, wait);
+  };
+};
+
+export const scheduleSetSettings = debounce(setSettings, 500);
+
 export const getSettings = async () => {
   const response = await fetch(`${myApiUrl}/get-settings`);
   const settings = await response.json();
   const me = await getMe();
   const updatedSettings = { ...settings, isAdmin: me !== null };
-  // console.log(settings);
-  setUser(me);
-  return updatedSettings;
+  // return both settings and the current user so callers can decide whether to persist
+  return { settings: updatedSettings, me };
 };
 
 export const getPlaylists = async () => {

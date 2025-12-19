@@ -1,4 +1,4 @@
-import { getRequestedSongs, getUserRequests, searchSongs, startKeepAlivePing } from "./service.js";
+import { getRequestedSongs, getUserRequests, searchSongs} from "./service.js";
 import { requestSong, userID } from "./domain.js";
 import { homeDisplaySongs as displaySongs } from "./displayUpdates.js";
 
@@ -20,4 +20,3 @@ searchBarElement.addEventListener("input", async (event) => {
 
 // displaySongs(true, "travlin");
 displaySongs(false);
-startKeepAlivePing();

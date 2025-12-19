@@ -1,7 +1,7 @@
-import { getSettings, setSettings } from "./service.js";
+import { getSettings, setSettings, scheduleSetSettings } from "./service.js";
 
-export const myApiUrl = "http://127.0.0.1:5001";
-// export const myApiUrl = "https://song-request-manager.onrender.com";
+// export const myApiUrl = "http://127.0.0.1:5001";
+export const myApiUrl = "https://song-request-manager.onrender.com";
 
 // settings
 export let currentUser = null;
@@ -22,10 +22,11 @@ export const selectedDays = {
 export let autoAddTime = "22:30";
 
 export const loadSettingsFromApi = async () => {
-  const settings = await getSettings();
+  const result = await getSettings();
+  const settings = result.settings ?? result;
+  const me = result.me ?? null;
 
-  // console.log(settings);
-  // currentUser = settings.currentUser;
+  // update local settings
   currentPlaylist = settings.currentPlaylist;
   numbOfAllowedRequests = settings.numbOfAllowedRequests;
   allowRepeats = settings.allowRepeats;
@@ -40,63 +41,69 @@ export const loadSettingsFromApi = async () => {
   selectedDays.sunday = settings.selectedDays.sunday;
   autoAddTime = settings.autoAddTime;
   isAdmin = settings.isAdmin;
+
+  // set current user locally without triggering a settings save
+  setUserLocal(me);
 };
 
 export let isAdmin = false;
 
 export const setUser = (user) => {
   currentUser = user;
-  setSettings();
+  scheduleSetSettings();
+};
+export const setUserLocal = (user) => {
+  currentUser = user;
 };
 export const setCurrentPlaylist = (playlist) => {
   currentPlaylist = playlist;
-  setSettings();
+  scheduleSetSettings();
 };
 export const setNumbOfAllowedRequests = (limit) => {
   numbOfAllowedRequests = limit;
-  setSettings();
+  scheduleSetSettings();
 };
 export const setAllowRepeats = (allowed) => {
   allowRepeats = allowed;
-  setSettings();
+  scheduleSetSettings();
 };
 export const setAutoAdd = (auto) => {
   autoAdd = auto;
-  setSettings();
+  scheduleSetSettings();
 };
 export const setAutoAddQuantity = (quantity) => {
   autoAddQuantity = quantity;
-  setSettings();
+  scheduleSetSettings();
 }
 export const setMonday = (monday) => {
   selectedDays.monday = monday;
-  setSettings();
+  scheduleSetSettings();
 };
 export const setTuesday = (tuesday) => {
   selectedDays.tuesday = tuesday;
-  setSettings();
+  scheduleSetSettings();
 };
 export const setWednesday = (wednesday) => {
   selectedDays.wednesday = wednesday;
-  setSettings();
+  scheduleSetSettings();
 };
 export const setThursday = (thursday) => {
   selectedDays.thursday = thursday;
-  setSettings();
+  scheduleSetSettings();
 };
 export const setFriday = (friday) => {
   selectedDays.friday = friday;
-  setSettings();
+  scheduleSetSettings();
 };
 export const setSaturday = (saturday) => {
   selectedDays.saturday = saturday;
-  setSettings();
+  scheduleSetSettings();
 };
 export const setSunday = (sunday) => {
   selectedDays.sunday = sunday;
-  setSettings();
+  scheduleSetSettings();
 };
 export const setAutoAddTime = (time) => {
   autoAddTime = time;
-  setSettings();
+  scheduleSetSettings();
 };

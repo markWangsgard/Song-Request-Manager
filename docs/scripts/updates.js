@@ -14,16 +14,29 @@ if (!signalR) {
     .withAutomaticReconnect()
     .build();
 
-  connection.on("ReceiveSongRequestUpdate", () => {
+  // Debounce helper (trailing) to avoid rapid repeated UI refreshes
+  const debounce = (fn, wait = 300) => {
+    let t;
+    return (...args) => {
+      clearTimeout(t);
+      t = setTimeout(() => {
+        Promise.resolve(fn(...args)).catch((err) => console.error(err));
+      }, wait);
+    };
+  };
+
+  const handleReceiveUpdate = async () => {
     const searchBarElement = document.getElementById("search");
-    // console.log(searchBarElement.value != "");
-    if (searchBarElement.value === "") {
-      homeDisplaySongs(false);
-      adminDisplaySongs(false);
+    if (searchBarElement && searchBarElement.value === "") {
+      if (window.location.pathname === "/" || window.location.pathname === "/docs/") {
+        await homeDisplaySongs(false);
+      } else if (window.location.pathname === "/admin" || window.location.pathname === "/docs/admin.html") {
+        await adminDisplaySongs(false);
+      }
     }
-    // homeDisplaySongs(searchBarElement.value != "", searchBarElement.value);
-    // adminDisplaySongs(searchBarElement.value != "", searchBarElement.value);
-  });
+  };
+
+  connection.on("ReceiveSongRequestUpdate", debounce(handleReceiveUpdate, 300));
 
   connection
     .start()

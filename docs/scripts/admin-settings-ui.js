@@ -31,7 +31,6 @@ import {
   setSettings,
   logout,
   clearRequestsAPI,
-  startKeepAlivePing,
 } from "./service.js";
 
 const bodyElement = document.getElementById("body");
@@ -72,7 +71,7 @@ const addAllEventListeners = async () => {
 
   loginButton.addEventListener("click", async (e) => {
     e.preventDefault();
-    // console.log(currentUser);
+    
     if (currentUser) {
       await logout();
     } else {
@@ -91,7 +90,7 @@ const addAllEventListeners = async () => {
   });
 
   requestLimitInputElement.addEventListener("input", () => {
-    // console.log(currentPlaylist);
+    
     setNumbOfAllowedRequests(requestLimitInputElement.value);
   });
 
@@ -203,7 +202,7 @@ const updatePlaylist = () => {
   const selectedPlaylistTextElement = document.getElementById(
     "playlistSelectedText"
   );
-  // console.log(currentPlaylist);
+  
   if (currentPlaylist) {
     selectedPlaylistTextElement.textContent = `Playlist selected: ${
       currentPlaylist.Name ?? currentPlaylist.name
@@ -260,12 +259,12 @@ const displayPlaylists = async () => {
     //         </div>
 
     playlists.forEach((p) => {
-      // console.log(p);
+    
       const playlistElement = document.createElement("div");
       if (tempSelectedPlaylist !== null && p.Id === tempSelectedPlaylist.Id) {
         playlistElement.classList.add("bg-secondary");
       }
-      // console.log(tempSelectedPlaylist);
+      
       playlistElement.classList.add("rounded-5");
       playlistElement.classList.add("p-3");
       playlistElement.classList.add("m-3");
@@ -318,7 +317,7 @@ const displayPlaylists = async () => {
 
 addAllEventListeners();
 await loadSettingsFromApi();
-// console.log(currentUser);
+ 
 if (!currentUser || currentUser.error) {
   await logout();
 }
@@ -329,4 +328,4 @@ const loginSectionElement = document.getElementById("loginSection");
 loginSectionElement.classList.remove("d-none");
 
 await setSettings();
-startKeepAlivePing();
+ 

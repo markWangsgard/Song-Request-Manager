@@ -5,6 +5,7 @@ using DotNetEnv;
 using Sprache;
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.SignalR;
+using System.Collections.Concurrent;
 
 Env.Load();
 var builder = WebApplication.CreateBuilder(args);
@@ -27,6 +28,64 @@ var hub = app.Services.GetRequiredService<IHubContext<SongRequestManager>>();
 string accessToken = "";
 DateTime accessTokenExpiresAt = DateTime.MinValue;
 var periodicTimer = new PeriodicTimer(TimeSpan.FromMinutes(25));
+
+// Debounced broadcast queue + instrumentation
+var broadcastQueue = new ConcurrentQueue<string>();
+var broadcastCounts = new ConcurrentDictionary<string, int>();
+var broadcastInterval = TimeSpan.FromMilliseconds(300);
+var broadcastCts = new CancellationTokenSource();
+
+void BroadcastEvent(string source)
+{
+    try
+    {
+        broadcastQueue.Enqueue(source ?? "unknown");
+        broadcastCounts.AddOrUpdate(source ?? "unknown", 1, (k, v) => v + 1);
+    }
+    catch (Exception ex)
+    {
+        
+    }
+}
+
+async Task DebounceBroadcaster(CancellationToken token)
+{
+    while (!token.IsCancellationRequested)
+    {
+        try
+        {
+            await Task.Delay(broadcastInterval, token);
+        }
+        catch (TaskCanceledException)
+        {
+            break;
+        }
+
+        if (broadcastQueue.IsEmpty)
+            continue;
+
+        var drained = new List<string>();
+        while (broadcastQueue.TryDequeue(out var src))
+        {
+            drained.Add(src ?? "unknown");
+        }
+
+        var triggers = drained.Distinct().ToList();
+        var total = drained.Count;
+        var countsSnapshot = broadcastCounts.Select(kv => $"{kv.Key}={kv.Value}").ToArray();
+
+        try
+        {
+            await hub.Clients.All.SendAsync("ReceiveSongRequestUpdate");
+        }
+        catch (Exception ex)
+        {
+        }
+    }
+}
+
+// Start the debounced broadcaster background task
+_ = Task.Run(() => DebounceBroadcaster(broadcastCts.Token));
 
 
 
@@ -211,7 +270,6 @@ async Task RefreshAccessTokenPeriodically()
     while (await periodicTimer.WaitForNextTickAsync())
     {
         await AccessToken();
-        Console.WriteLine("Refreshing Access Tokens... " + DateTime.Now);
         var refreshTasks = PlaylistManager.Users.Keys.Select(user => RefreshAccessToken(user));
 
         await Task.WhenAll(refreshTasks);
@@ -279,7 +337,7 @@ app.MapGet("/", async () =>
 
 app.MapGet("/ping", () =>
 {
-    Console.WriteLine($"Ping received at {DateTime.UtcNow:u}");
+    
 
     var mountainTz = TimeZoneInfo.FindSystemTimeZoneById("America/Denver");
     var mountainHour = TimeZoneInfo.ConvertTimeFromUtc(
@@ -529,7 +587,7 @@ app.MapGet("/request-song/{user}/{songID}", async (string user, string songID) =
         }
     }
 
-    await hub.Clients.All.SendAsync("ReceiveSongRequestUpdate");
+    BroadcastEvent("request-song");
 
     return Results.Json(new { songID, requests = PlaylistManager.getSongRequestCount(songID) });
 });
@@ -537,7 +595,7 @@ app.MapGet("/request-song/{user}/{songID}", async (string user, string songID) =
 app.MapGet("/remove-song/{user}/{songId}", async (string user, string songId) =>
 {
     await removeSongAsync(user, songId);
-    await hub.Clients.All.SendAsync("ReceiveSongRequestUpdate");
+    BroadcastEvent("remove-song");
 
 
     return Results.Json(new { user, status = "removed" });
@@ -549,12 +607,12 @@ app.MapGet("/clear-requests", async () =>
     PlaylistManager.RequestedSongs.Clear();
     PlaylistManager.AllSongs.Clear();
 
-    await hub.Clients.All.SendAsync("ReceiveSongRequestUpdate");
+    BroadcastEvent("clear-requests");
 
     return Results.Json(new { status = "cleared" });
 });
 
-app.MapGet("/playlist/{playlistId}/{user}/add-song/{songId}", async (string playlistId, string user, string songId) =>
+async Task<IResult> addSongToPlaylistAsync(string playlistId, string user, string songId)
 {
     var song = await GetSong(songId);
     string trackUri;
@@ -590,9 +648,13 @@ app.MapGet("/playlist/{playlistId}/{user}/add-song/{songId}", async (string play
     var response = await client.PostAsync(url, content);
     string responseBody = await response.Content.ReadAsStringAsync();
 
-    Console.WriteLine("Response: " + responseBody);
-
     return Results.Content(responseBody, "application/json");
+
+}
+
+app.MapGet("/playlist/{playlistId}/{user}/add-song/{songId}", async (string playlistId, string user, string songId) =>
+{
+    await addSongToPlaylistAsync(playlistId, user, songId);
 });
 
 
@@ -621,6 +683,20 @@ app.MapPost("/store-settings/{user}", async (string user, Settings settings) =>
 {
     if (PlaylistManager.Users.ContainsKey(user) && PlaylistManager.Users[user] != null)
     {
+        // If incoming settings are identical to current settings, skip processing and broadcasting
+        bool settingsEqual =
+            PlaylistManager.settings.currentPlaylist == settings.currentPlaylist
+            && PlaylistManager.settings.numbOfAllowedRequests == settings.numbOfAllowedRequests
+            && PlaylistManager.settings.allowRepeats == settings.allowRepeats
+            && PlaylistManager.settings.autoAdd == settings.autoAdd
+            && PlaylistManager.settings.autoAddTime == settings.autoAddTime
+            && PlaylistManager.settings.selectedDays.Count == settings.selectedDays.Count
+            && PlaylistManager.settings.selectedDays.All(kv => settings.selectedDays.ContainsKey(kv.Key) && settings.selectedDays[kv.Key] == kv.Value);
+
+        if (settingsEqual)
+        {
+            return Results.Ok(PlaylistManager.settings);
+        }
         bool limitDecreased = PlaylistManager.settings.numbOfAllowedRequests > settings.numbOfAllowedRequests;
         bool allowRepeatsChanged = PlaylistManager.settings.allowRepeats != settings.allowRepeats;
 
@@ -662,7 +738,7 @@ app.MapPost("/store-settings/{user}", async (string user, Settings settings) =>
             }
         }
 
-        await hub.Clients.All.SendAsync("ReceiveSongRequestUpdate");
+        BroadcastEvent("store-settings");
 
         return Results.Ok(PlaylistManager.settings);
     }
@@ -671,6 +747,27 @@ app.MapPost("/store-settings/{user}", async (string user, Settings settings) =>
 app.MapGet("/get-settings/", () =>
 {
     return PlaylistManager.settings;
+});
+
+// Debug endpoint: view debounced broadcast statistics
+app.MapGet("/debug/broadcast-stats", () =>
+{
+    var countsSnapshot = broadcastCounts.ToDictionary(kv => kv.Key, kv => kv.Value);
+    var queued = broadcastQueue.ToArray();
+    return Results.Json(new
+    {
+        counts = countsSnapshot,
+        queueLength = queued.Length,
+        queued = queued
+    });
+});
+
+// Debug endpoint: reset counts/queue
+app.MapPost("/debug/broadcast-stats/reset", () =>
+{
+    broadcastCounts.Clear();
+    while (broadcastQueue.TryDequeue(out _)) { }
+    return Results.Json(new { status = "reset" });
 });
 
 app.Run();
