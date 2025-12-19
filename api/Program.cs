@@ -279,6 +279,8 @@ app.MapGet("/", async () =>
 
 app.MapGet("/ping", () =>
 {
+    Console.WriteLine($"Ping received at {DateTime.UtcNow:u}");
+
     var mountainTz = TimeZoneInfo.FindSystemTimeZoneById("America/Denver");
     var mountainHour = TimeZoneInfo.ConvertTimeFromUtc(
         DateTime.UtcNow,
