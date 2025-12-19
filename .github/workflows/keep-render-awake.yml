@@ -15,7 +15,7 @@ jobs:
           DAY_MT=$(TZ="America/Denver" date +%u)  # 1=Mon ... 7=Sun
 
           # Wednesday = 3
-          if [ "$DAY_MT" -eq 4 ] && [ "$HOUR_MT" -ge 18 ] && [ "$HOUR_MT" -lt 23 ]; then
+          if [ "$DAY_MT" -eq 3 ] && [ "$HOUR_MT" -ge 18 ] && [ "$HOUR_MT" -lt 23 ]; then
             echo "Wednesday 6–11 PM MT — pinging Render"
             curl -s https://song-request-manager.onrender.com/ping > /dev/null
           else
