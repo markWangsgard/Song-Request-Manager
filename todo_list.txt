@@ -2,8 +2,6 @@ Todo:
 
 * Setup auto add time
 
-* Start time
-
 * Hidden button for admins?
 
 * Refactor/review all code
