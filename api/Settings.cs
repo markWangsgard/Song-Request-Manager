@@ -5,7 +5,7 @@ public class Settings
     public int numbOfAllowedRequests { get; set; } = 3;
     public bool allowRepeats { get; set; } = true;
     public bool autoAdd { get; set; } = true;
-    public int autoAddQuantity { get; set; } = 3;
+    public int autoAddQuantity { get; set; } = 2;
     public Dictionary<string, bool> selectedDays { get; set; } = new()
     {
         {"monday", false},

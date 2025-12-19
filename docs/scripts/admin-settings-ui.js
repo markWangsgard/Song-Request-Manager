@@ -21,9 +21,18 @@ import {
   currentPlaylist,
   setCurrentPlaylist,
   isAdmin,
+  autoAddQuantity,
+  setAutoAddQuantity,
 } from "./constants.js";
 import { songsAddedToPlaylist, userID } from "./domain.js";
-import { getPlaylists, login, setSettings, logout, clearRequestsAPI, startKeepAlivePing } from "./service.js";
+import {
+  getPlaylists,
+  login,
+  setSettings,
+  logout,
+  clearRequestsAPI,
+  startKeepAlivePing,
+} from "./service.js";
 
 const bodyElement = document.getElementById("body");
 const loginButton = document.getElementById("signIn");
@@ -50,7 +59,9 @@ const selectChoicePlaylistButton = document.getElementById(
 const popupElement = document.getElementById("confirmationPopupContainer");
 const clearRequestsButton = document.getElementById("clearRequests");
 const confirmationCancelButton = document.getElementById("cancelClearRequests");
-const confirmationConfirmButton = document.getElementById("confirmClearRequests");
+const confirmationConfirmButton = document.getElementById(
+  "confirmClearRequests"
+);
 let tempSelectedPlaylist = currentPlaylist;
 
 const addAllEventListeners = async () => {
@@ -61,7 +72,7 @@ const addAllEventListeners = async () => {
 
   loginButton.addEventListener("click", async (e) => {
     e.preventDefault();
-    console.log(currentUser);
+    // console.log(currentUser);
     if (currentUser) {
       await logout();
     } else {
@@ -80,7 +91,7 @@ const addAllEventListeners = async () => {
   });
 
   requestLimitInputElement.addEventListener("input", () => {
-    console.log(currentPlaylist);
+    // console.log(currentPlaylist);
     setNumbOfAllowedRequests(requestLimitInputElement.value);
   });
 
@@ -99,7 +110,7 @@ const addAllEventListeners = async () => {
   });
 
   autoAddQuantityInputElement.addEventListener("input", () => {
-    setNumbOfAllowedRequests(autoAddQuantityInputElement.value);
+    setAutoAddQuantity(autoAddQuantityInputElement.value);
   });
 
   mondayCheckboxElement.addEventListener("input", () => {
@@ -176,6 +187,7 @@ const updateUser = () => {
     loginButton.textContent = "Sign Out";
     if (isAdmin) {
       allSettingsElement.classList.remove("d-none");
+      updateAutoAdd();
     }
 
     setUser(user);
@@ -203,18 +215,23 @@ const updatePlaylist = () => {
   songsAddedToPlaylist.length = 0;
 };
 
-const updateAutoAdd = () => {};
+const updateAutoAdd = () => {
+  const autoAddSelectionElement = document.getElementById("autoAddSelection");
+  if (autoAdd) {
+    autoAddSelectionElement.classList.remove("visually-hidden");
+  } else {
+    autoAddSelectionElement.classList.add("visually-hidden");
+  }
+};
 
 const loadSettings = () => {
-  updateUser();
-  updatePlaylist();
-  updateAutoAdd();
-
   requestLimitInputElement.value = numbOfAllowedRequests;
 
   allowRepeatsSwitchElement.checked = allowRepeats;
 
   autoAddSwitchElement.checked = autoAdd;
+
+  autoAddQuantityInputElement.value = autoAddQuantity;
 
   mondayCheckboxElement.checked = selectedDays.monday;
   tuesdayCheckboxElement.checked = selectedDays.tuesday;
@@ -225,6 +242,9 @@ const loadSettings = () => {
   sundayCheckboxElement.checked = selectedDays.sunday;
 
   timePickerElement.value = autoAddTime;
+  updateUser();
+  updatePlaylist();
+  updateAutoAdd();
 };
 
 const displayPlaylists = async () => {

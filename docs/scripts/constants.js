@@ -1,9 +1,7 @@
 import { getSettings, setSettings } from "./service.js";
 
-// export const myApiUrl = "http://127.0.0.1:5001";
-export const myApiUrl = "https://song-request-manager.onrender.com";
-
-// export const myApiUrl = `https://soutenu-chan-unscheming.ngrok-free.dev`;
+export const myApiUrl = "http://127.0.0.1:5001";
+// export const myApiUrl = "https://song-request-manager.onrender.com";
 
 // settings
 export let currentUser = null;
@@ -32,6 +30,7 @@ export const loadSettingsFromApi = async () => {
   numbOfAllowedRequests = settings.numbOfAllowedRequests;
   allowRepeats = settings.allowRepeats;
   autoAdd = settings.autoAdd;
+  autoAddQuantity = settings.autoAddQuantity;
   selectedDays.monday = settings.selectedDays.monday;
   selectedDays.tuesday = settings.selectedDays.tuesday;
   selectedDays.wednesday = settings.selectedDays.wednesday;

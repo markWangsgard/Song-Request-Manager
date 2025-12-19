@@ -249,7 +249,7 @@ async Task RefreshAccessToken(string user)
     JsonObjectResponse.TryGetPropertyValue("access_token", out JsonNode jsonNode);
     PlaylistManager.Users[user].userAccessToken = jsonNode.ToString();
 }
-async Task removeSongAsync(string user, string songId)
+async Task removeSongAsync(string user, string songId, bool broadcast = true)
 {
     int index;
     SongData song;
@@ -267,7 +267,6 @@ async Task removeSongAsync(string user, string songId)
         index = PlaylistManager.AllSongs.FindIndex(s => s.id == songId);
         PlaylistManager.AllSongs.RemoveAt(index);
     }
-    await hub.Clients.All.SendAsync("ReceiveSongRequestUpdate");
 }
 
 
@@ -275,6 +274,25 @@ app.MapGet("/", async () =>
 {
     accessToken = await AccessToken();
     return $"Spotify API Proxy is running. Access Token: {accessToken}";
+});
+
+
+app.MapGet("/ping", () =>
+{
+    var mountainTz = TimeZoneInfo.FindSystemTimeZoneById("America/Denver");
+    var mountainHour = TimeZoneInfo.ConvertTimeFromUtc(
+        DateTime.UtcNow,
+        mountainTz
+    ).Hour;
+    var utcDay = DateTime.UtcNow.DayOfWeek;
+    // Keep awake between 08:00–18:00 UTC
+    if (mountainHour >= 18 && mountainHour < 23 && utcDay == DayOfWeek.Wednesday )
+    {
+        return Results.Ok("Keeping awake");
+    }
+
+    // Still counts as activity, but does nothing
+    return Results.NoContent();
 });
 
 app.MapGet("/login/{user}", (string user, string returnTo = "https://song-request-manager.onrender.com/me") =>
@@ -514,12 +532,13 @@ app.MapGet("/request-song/{user}/{songID}", async (string user, string songID) =
     return Results.Json(new { songID, requests = PlaylistManager.getSongRequestCount(songID) });
 });
 
-app.MapGet("/remove-song/{user}/{songId}", (string user, string songId) =>
+app.MapGet("/remove-song/{user}/{songId}", async (string user, string songId) =>
 {
+    await removeSongAsync(user, songId);
+    await hub.Clients.All.SendAsync("ReceiveSongRequestUpdate");
 
-    removeSongAsync(user, songId);
 
-    return Task.FromResult(Results.Json(new { user, status = "removed" }));
+    return Results.Json(new { user, status = "removed" });
 });
 
 
@@ -527,7 +546,7 @@ app.MapGet("/clear-requests", async () =>
 {
     PlaylistManager.RequestedSongs.Clear();
     PlaylistManager.AllSongs.Clear();
-    
+
     await hub.Clients.All.SendAsync("ReceiveSongRequestUpdate");
 
     return Results.Json(new { status = "cleared" });
@@ -627,7 +646,7 @@ app.MapPost("/store-settings/{user}", async (string user, Settings settings) =>
                         while (PlaylistManager.RequestedSongs[newUser].Count > settings.numbOfAllowedRequests)
                         {
                             string songId = PlaylistManager.RequestedSongs[newUser][PlaylistManager.RequestedSongs[newUser].Count - 1].id;
-                            removeSongAsync(newUser, songId);
+                            await removeSongAsync(newUser, songId, false);
                         }
                     }
 

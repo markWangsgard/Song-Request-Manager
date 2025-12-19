@@ -17,8 +17,12 @@ if (!signalR) {
   connection.on("ReceiveSongRequestUpdate", () => {
     const searchBarElement = document.getElementById("search");
     // console.log(searchBarElement.value != "");
-    homeDisplaySongs(searchBarElement.value != "", searchBarElement.value);
-    adminDisplaySongs(searchBarElement.value != "", searchBarElement.value);
+    if (searchBarElement.value === "") {
+      homeDisplaySongs(false);
+      adminDisplaySongs(false);
+    }
+    // homeDisplaySongs(searchBarElement.value != "", searchBarElement.value);
+    // adminDisplaySongs(searchBarElement.value != "", searchBarElement.value);
   });
 
   connection
