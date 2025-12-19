@@ -133,3 +133,16 @@ export const addSongToPlaylistAPI = async (playlistId, songId) => {
 export const clearRequestsAPI = async () => {
   await fetch(`${myApiUrl}/clear-requests`);
 };
+
+export const waitForApiAndReload = async (interval = 2000) => {
+  try {
+    const resp = await fetch(`${myApiUrl}/get-settings`, { method: "GET", cache: "no-store" });
+    if (resp.ok) {
+      window.location.reload();
+      return;
+    }
+  } catch (e) {
+    // ignore and retry
+  }
+  setTimeout(waitForApiAndReload, interval);
+};

@@ -1,9 +1,5 @@
-import { logout } from "./service.js";
-import {
-  currentPlaylist,
-  currentUser,
-  loadSettingsFromApi,
-} from "./constants.js";
+import { logout, waitForApiAndReload } from "./service.js";
+import { currentPlaylist, currentUser, loadSettingsFromApi } from "./constants.js";
 import { adminDisplaySongs as displaySongs } from "./displayUpdates.js";
 
 const searchBarElement = document.getElementById("search");
@@ -25,7 +21,16 @@ logoElement.addEventListener("click", () => {
   window.location.href = "./admin-settings.html";
 });
 
-await loadSettingsFromApi();
+try {
+  await loadSettingsFromApi();
+} catch (e) {
+  const loader = document.getElementById("loader");
+  if (loader) loader.classList.remove("d-none");
+  waitForApiAndReload();
+  // stop further initialization until API is available
+  throw e;
+}
+
 if (!currentUser || currentUser.error) {
   await logout();
 }

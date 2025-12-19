@@ -31,6 +31,7 @@ import {
   setSettings,
   logout,
   clearRequestsAPI,
+  waitForApiAndReload,
 } from "./service.js";
 
 const bodyElement = document.getElementById("body");
@@ -316,16 +317,25 @@ const displayPlaylists = async () => {
 };
 
 addAllEventListeners();
-await loadSettingsFromApi();
- 
+
+try {
+  await loadSettingsFromApi();
+} catch (e) {
+  const loaderElement = document.getElementById("loader");
+  if (loaderElement) loaderElement.classList.remove("d-none");
+  waitForApiAndReload();
+  // stop further initialization until API is available
+  throw e;
+}
+
 if (!currentUser || currentUser.error) {
   await logout();
 }
 loadSettings();
 const loaderElement = document.getElementById("loader");
-loaderElement.classList.add("d-none");
+if (loaderElement) loaderElement.classList.add("d-none");
 const loginSectionElement = document.getElementById("loginSection");
-loginSectionElement.classList.remove("d-none");
+if (loginSectionElement) loginSectionElement.classList.remove("d-none");
 
 await setSettings();
  

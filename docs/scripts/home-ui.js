@@ -1,6 +1,7 @@
-import { getRequestedSongs, getUserRequests, searchSongs} from "./service.js";
+import { getRequestedSongs, getUserRequests, searchSongs, waitForApiAndReload } from "./service.js";
 import { requestSong, userID } from "./domain.js";
 import { homeDisplaySongs as displaySongs } from "./displayUpdates.js";
+import { loadSettingsFromApi } from "./constants.js";
 
 const searchBarElement = document.getElementById("search");
 const resultsContainer = document.getElementById("results");
@@ -17,6 +18,15 @@ searchBarElement.addEventListener("input", async (event) => {
     displaySongs(query !== "", query);
   }, 100);
 });
+
+try {
+  await loadSettingsFromApi();
+} catch (e) {
+  const loader = document.getElementById("loader");
+  if (loader) loader.classList.remove("d-none");
+  waitForApiAndReload();
+  throw e;
+}
 
 // displaySongs(true, "travlin");
 displaySongs(false);
