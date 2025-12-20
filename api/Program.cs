@@ -17,16 +17,16 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddCors();
 builder.Services.AddSignalR();
+// Run the auto-add background service under the host lifecycle
+builder.Services.AddHostedService<AutoAddService>();
 
 
 var app = builder.Build();
 app.UseCors(x => x.AllowAnyHeader().AllowAnyOrigin().AllowAnyMethod());
 app.MapHub<SongRequestManager>("/songRequestManager");
 
-var client = new HttpClient();
 var hub = app.Services.GetRequiredService<IHubContext<SongRequestManager>>();
-string accessToken = "";
-DateTime accessTokenExpiresAt = DateTime.MinValue;
+
 var periodicTimer = new PeriodicTimer(TimeSpan.FromMinutes(25));
 
 // Debounced broadcast queue + instrumentation
@@ -88,188 +88,11 @@ async Task DebounceBroadcaster(CancellationToken token)
 _ = Task.Run(() => DebounceBroadcaster(broadcastCts.Token));
 
 
-
-async Task<string> AccessToken()
-{
-    // Request a new token if missing or expired (with a small buffer)
-    if (string.IsNullOrWhiteSpace(accessToken) || DateTime.UtcNow >= accessTokenExpiresAt.AddSeconds(-30))
-    {
-        try
-        {
-            var clientId = Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_ID");
-            var clientSecret = Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_SECRET");
-
-            var tokenRequest = new HttpRequestMessage(HttpMethod.Post, "https://accounts.spotify.com/api/token");
-            var auth = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clientId}:{clientSecret}"));
-            tokenRequest.Headers.Authorization = new AuthenticationHeaderValue("Basic", auth);
-            tokenRequest.Content = new FormUrlEncodedContent(new[]
-            {
-                new KeyValuePair<string, string>("grant_type", "client_credentials")
-            });
-
-            var response = await client.SendAsync(tokenRequest);
-            var content = await response.Content.ReadAsStringAsync();
-            if (!response.IsSuccessStatusCode)
-            {
-                // clear on failure
-                accessToken = "";
-                accessTokenExpiresAt = DateTime.MinValue;
-                return "";
-            }
-
-            var doc = JsonDocument.Parse(content);
-            accessToken = doc.RootElement.GetProperty("access_token").GetString() ?? "";
-
-            // set expiry based on expires_in if provided
-            if (doc.RootElement.TryGetProperty("expires_in", out JsonElement expiresElem) && expiresElem.ValueKind == JsonValueKind.Number)
-            {
-                var expiresIn = expiresElem.GetInt32();
-                accessTokenExpiresAt = DateTime.UtcNow.AddSeconds(expiresIn);
-            }
-            else
-            {
-                // default to 1 hour if server doesn't provide expires_in
-                accessTokenExpiresAt = DateTime.UtcNow.AddMinutes(60);
-            }
-
-            return accessToken;
-        }
-        catch
-        {
-            accessToken = "";
-            accessTokenExpiresAt = DateTime.MinValue;
-            return "";
-        }
-    }
-    else
-    {
-        return accessToken;
-    }
-}
-
-
-SongData? filterSongData(JsonElement jsonObject)
-{
-    string id = "";
-    if (jsonObject.TryGetProperty("id", out JsonElement idElem) && idElem.ValueKind != JsonValueKind.Null)
-    {
-        id = idElem.GetString() ?? "";
-    }
-
-    if (string.IsNullOrEmpty(id))
-    {
-        // missing id -> treat as invalid
-        return null;
-    }
-
-    string trackName = "Unknown";
-    if (jsonObject.TryGetProperty("name", out JsonElement nameElem) && nameElem.ValueKind != JsonValueKind.Null)
-    {
-        trackName = nameElem.GetString() ?? "Unknown";
-    }
-
-    string artistName = "Unknown Artist";
-    if (jsonObject.TryGetProperty("artists", out JsonElement artistsElem) && artistsElem.ValueKind == JsonValueKind.Array)
-    {
-        var enumerator = artistsElem.EnumerateArray();
-        if (enumerator.MoveNext())
-        {
-            var firstArtist = enumerator.Current;
-            if (firstArtist.TryGetProperty("name", out JsonElement artistNameElem) && artistNameElem.ValueKind != JsonValueKind.Null)
-            {
-                artistName = artistNameElem.GetString() ?? "Unknown Artist";
-            }
-        }
-    }
-
-    string imgURL = "";
-    if (jsonObject.TryGetProperty("album", out JsonElement albumElem) && albumElem.ValueKind == JsonValueKind.Object)
-    {
-        if (albumElem.TryGetProperty("images", out JsonElement imagesElem) && imagesElem.ValueKind == JsonValueKind.Array)
-        {
-            int idx = 0;
-            foreach (var img in imagesElem.EnumerateArray())
-            {
-                if (idx == 2)
-                {
-                    if (img.TryGetProperty("url", out JsonElement urlElem) && urlElem.ValueKind != JsonValueKind.Null)
-                    {
-                        imgURL = urlElem.GetString() ?? "";
-                    }
-                    break;
-                }
-                idx++;
-            }
-
-            // fallback to the first image if index 2 doesn't exist
-            if (string.IsNullOrEmpty(imgURL))
-            {
-                var enumerator2 = imagesElem.EnumerateArray();
-                if (enumerator2.MoveNext())
-                {
-                    var firstImg = enumerator2.Current;
-                    if (firstImg.TryGetProperty("url", out JsonElement firstUrlElem) && firstUrlElem.ValueKind != JsonValueKind.Null)
-                    {
-                        imgURL = firstUrlElem.GetString() ?? "";
-                    }
-                }
-            }
-        }
-    }
-
-    string Uri = "Unknown";
-    if (jsonObject.TryGetProperty("uri", out JsonElement uriElem) && uriElem.ValueKind != JsonValueKind.Null)
-    {
-        Uri = uriElem.GetString() ?? "Unknown";
-    }
-
-    SongData songData = new()
-    {
-        id = id,
-        trackName = trackName,
-        artistName = artistName,
-        imgURL = imgURL,
-        uri = Uri,
-        timeRequested = DateTime.Now
-    };
-    return songData;
-}
-
-async Task<SongData?> GetSong(string id)
-{
-    if (string.IsNullOrWhiteSpace(id))
-    {
-        return null;
-    }
-
-    accessToken = await AccessToken();
-    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-
-    using var response = await client.GetAsync($"https://api.spotify.com/v1/tracks/{id}/");
-    if (!response.IsSuccessStatusCode)
-    {
-        return null;
-    }
-
-    var content = await response.Content.ReadAsStringAsync();
-    var jsonObject = JsonSerializer.Deserialize<JsonElement>(content);
-
-    // ensure parsed object actually has an id
-    if (!jsonObject.TryGetProperty("id", out JsonElement idElem) || idElem.ValueKind == JsonValueKind.Null)
-    {
-        return null;
-    }
-
-    SongData? songData = filterSongData(jsonObject);
-    return songData;
-}
-
-
 async Task RefreshAccessTokenPeriodically()
 {
     while (await periodicTimer.WaitForNextTickAsync())
     {
-        await AccessToken();
+        await APIManager.AccessToken();
         var refreshTasks = PlaylistManager.Users.Keys.Select(user => RefreshAccessToken(user));
 
         await Task.WhenAll(refreshTasks);
@@ -330,8 +153,8 @@ async Task removeSongAsync(string user, string songId, bool broadcast = true)
 
 app.MapGet("/", async () =>
 {
-    accessToken = await AccessToken();
-    return $"Spotify API Proxy is running. Access Token: {accessToken}";
+    APIManager.accessToken = await APIManager.AccessToken();
+    return $"Spotify API Proxy is running. Access Token: {APIManager.accessToken}";
 });
 
 
@@ -391,7 +214,7 @@ app.MapGet("/callback", async (string code, string state) =>
         new KeyValuePair<string, string>("redirect_uri", redirectUri ?? "")
     });
 
-    var response = await client.SendAsync(tokenRequest);
+    var response = await APIManager.client.SendAsync(tokenRequest);
     var content = await response.Content.ReadAsStringAsync();
     if (!response.IsSuccessStatusCode)
     {
@@ -403,9 +226,9 @@ app.MapGet("/callback", async (string code, string state) =>
     var userAccessToken = doc.RootElement.GetProperty("access_token").GetString() ?? "";
     var userRefreshToken = doc.RootElement.GetProperty("refresh_token").GetString() ?? "";
 
-    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userAccessToken);
+    APIManager.client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", userAccessToken);
 
-    var responseMe = client.GetAsync("https://api.spotify.com/v1/me/");
+    var responseMe = APIManager.client.GetAsync("https://api.spotify.com/v1/me/");
     var responseMessage = await responseMe;
 
     State currentState = JsonSerializer.Deserialize<State>(state);
@@ -455,7 +278,7 @@ app.MapGet("/callback", async (string code, string state) =>
 app.MapGet("/logout/{user}", async (string user) =>
 {
     PlaylistManager.Users[user] = null;
-    var response = await client.GetAsync("https://accounts.spotify.com/en/logout ");
+    var response = await APIManager.client.GetAsync("https://accounts.spotify.com/en/logout ");
 });
 
 app.MapGet("/me/{user}", async (string user = "") =>
@@ -474,11 +297,11 @@ app.MapGet("/me/{user}/playlists", async (string user) =>
         return Results.Json(new { error = "User not found" });
     }
 
-    await AccessToken();
+    await APIManager.AccessToken();
 
-    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PlaylistManager.Users[user].userAccessToken);
+    APIManager.client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PlaylistManager.Users[user].userAccessToken);
 
-    var response = await client.GetAsync("https://api.spotify.com/v1/me/playlists");
+    var response = await APIManager.client.GetAsync("https://api.spotify.com/v1/me/playlists");
     var JsonObjectResponse = JsonSerializer.Deserialize<JsonObject>(await response.Content.ReadAsStringAsync());
 
     // JsonObjectResponse.TryGetPropertyValue("items", out JsonObject playlists);
@@ -520,7 +343,7 @@ app.MapGet("/me/{user}/playlists", async (string user) =>
 app.MapGet("/song/{songID}", async (HttpContext http) =>
 {
     var songID = http.Request.RouteValues["songID"]?.ToString() ?? "";
-    var song = await GetSong(songID);
+    var song = await APIManager.GetSong(songID);
     if (song == null)
     {
         return Results.Json(new { error = "Song not found" });
@@ -530,10 +353,10 @@ app.MapGet("/song/{songID}", async (HttpContext http) =>
 
 app.MapGet("/search/{query}", async (string query) =>
 {
-    accessToken = await AccessToken();
-    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+    APIManager.accessToken = await APIManager.AccessToken();
+    APIManager.client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", APIManager.accessToken);
 
-    using var response = await client.GetAsync($"https://api.spotify.com/v1/search?q={Uri.EscapeDataString(query)}&type=track&limit=10");
+    using var response = await APIManager.client.GetAsync($"https://api.spotify.com/v1/search?q={Uri.EscapeDataString(query)}&type=track&limit=10");
     if (!response.IsSuccessStatusCode)
         return Results.Json(new { error = "search failed", status = response.StatusCode });
 
@@ -543,7 +366,7 @@ app.MapGet("/search/{query}", async (string query) =>
     var listOfTracks = new List<SongData>();
     foreach (var songElem in jsonObjectTracks.EnumerateArray())
     {
-        var sd = filterSongData(songElem);
+        var sd = APIManager.filterSongData(songElem);
         if (sd != null) listOfTracks.Add(sd);
     }
     return Results.Json(listOfTracks);
@@ -561,7 +384,7 @@ app.MapGet("/search/{query}", async (string query) =>
 app.MapGet("/request-song/{user}/{songID}", async (string user, string songID) =>
 {
     SongData song;
-    var songData = await GetSong(songID);
+    var songData = await APIManager.GetSong(songID);
     if (songData == null)
     {
         return Results.Json(new { error = "Song not found" });
@@ -612,49 +435,11 @@ app.MapGet("/clear-requests", async () =>
     return Results.Json(new { status = "cleared" });
 });
 
-async Task<IResult> addSongToPlaylistAsync(string playlistId, string user, string songId)
-{
-    var song = await GetSong(songId);
-    string trackUri;
-    if (song != null)
-    {
-        trackUri = song.uri;
-    }
-    else
-    {
-        return Results.Json(new { statusCode = "Song Not found" });
-    }
 
-    string token;
-    if (PlaylistManager.Users.ContainsKey(user))
-    {
-        token = PlaylistManager.Users[user].userAccessToken;
-    }
-    else
-    {
-        return Results.Json(new { statusCode = "User Not found" });
-    }
-
-
-    using var client = new HttpClient();
-
-    client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
-
-    var url = $"https://api.spotify.com/v1/playlists/{playlistId}/tracks";
-
-    var json = $"{{\"uris\": [\"{trackUri}\"]}}";
-    var content = new StringContent(json, Encoding.UTF8, "application/json");
-
-    var response = await client.PostAsync(url, content);
-    string responseBody = await response.Content.ReadAsStringAsync();
-
-    return Results.Content(responseBody, "application/json");
-
-}
 
 app.MapGet("/playlist/{playlistId}/{user}/add-song/{songId}", async (string playlistId, string user, string songId) =>
 {
-    await addSongToPlaylistAsync(playlistId, user, songId);
+    await APIManager.addSongToPlaylistAsync(playlistId, user, songId);
 });
 
 
@@ -705,6 +490,10 @@ app.MapPost("/store-settings/{user}", async (string user, Settings settings) =>
         PlaylistManager.settings.allowRepeats = settings.allowRepeats;
         PlaylistManager.settings.autoAdd = settings.autoAdd;
 
+        // Notify the PlaylistManager signal about the change to autoAdd so the background
+        // worker can block/unblock immediately without busy-waiting.
+        PlaylistManager.SignalAutoAddEnabled(settings.autoAdd);
+
         foreach (var day in settings.selectedDays)
         {
             PlaylistManager.settings.selectedDays[day.Key] = day.Value;
@@ -739,6 +528,16 @@ app.MapPost("/store-settings/{user}", async (string user, Settings settings) =>
         }
 
         BroadcastEvent("store-settings");
+        // Notify the auto-add loop to restart its wait when settings change
+        PlaylistManager.CancelAndResetAutoAdd();
+
+        var autoAddTask = Task.Run(async () =>
+        {
+            if (settings.autoAdd)
+            {
+                
+            }
+        });
 
         return Results.Ok(PlaylistManager.settings);
     }
@@ -769,5 +568,7 @@ app.MapPost("/debug/broadcast-stats/reset", () =>
     while (broadcastQueue.TryDequeue(out _)) { }
     return Results.Json(new { status = "reset" });
 });
+
+// PlaylistManager.autoAddFunction is now started by the hosted service `AutoAddService`.
 
 app.Run();

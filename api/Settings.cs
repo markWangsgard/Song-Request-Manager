@@ -4,7 +4,7 @@ public class Settings
     public PlaylistData currentPlaylist { get; set; }
     public int numbOfAllowedRequests { get; set; } = 3;
     public bool allowRepeats { get; set; } = true;
-    public bool autoAdd { get; set; } = true;
+    public bool autoAdd { get; set; } = false;
     public int autoAddQuantity { get; set; } = 2;
     public Dictionary<string, bool> selectedDays { get; set; } = new()
     {
@@ -16,5 +16,5 @@ public class Settings
         {"saturday", false},
         {"sunday", false},
     };
-    public string autoAddTime { get; set; } = "";
+    public string autoAddTime { get; set; } = "22:15";
 }

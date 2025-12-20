@@ -1,12 +1,14 @@
 Todo:
 
-* Setup auto add time
-
 * Hidden button for admins?
 
 * Refactor/review all code
 
+* look into quering databases
+
 Complete?: 
+
+* Setup auto add time
 
 * Javascript function to make sure api stays awake during swing time
 
