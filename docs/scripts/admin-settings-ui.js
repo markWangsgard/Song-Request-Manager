@@ -65,10 +65,6 @@ const confirmationConfirmButton = document.getElementById(
 let tempSelectedPlaylist = currentPlaylist;
 
 const addAllEventListeners = async () => {
-  const logoElement = document.getElementById("logo");
-  logoElement.addEventListener("click", () => {
-    window.location.href = "./admin.html";
-  });
 
   loginButton.addEventListener("click", async (e) => {
     e.preventDefault();

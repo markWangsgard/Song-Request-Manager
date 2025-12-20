@@ -16,11 +16,6 @@ searchBarElement.addEventListener("input", async (event) => {
   }, 100);
 });
 
-const logoElement = document.getElementById("logo");
-logoElement.addEventListener("click", () => {
-  window.location.href = "./admin-settings.html";
-});
-
 try {
   await loadSettingsFromApi();
 } catch (e) {

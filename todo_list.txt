@@ -1,12 +1,12 @@
 Todo:
 
-* Hidden button for admins?
-
 * Refactor/review all code
 
-* look into quering databases
+* look into querying databases
 
 Complete?: 
+
+* Hidden button for admins?
 
 * Setup auto add time
 

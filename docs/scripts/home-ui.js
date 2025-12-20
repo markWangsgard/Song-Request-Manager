@@ -1,4 +1,9 @@
-import { getRequestedSongs, getUserRequests, searchSongs, waitForApiAndReload } from "./service.js";
+import {
+  getRequestedSongs,
+  getUserRequests,
+  searchSongs,
+  waitForApiAndReload,
+} from "./service.js";
 import { requestSong, userID } from "./domain.js";
 import { homeDisplaySongs as displaySongs } from "./displayUpdates.js";
 import { loadSettingsFromApi } from "./constants.js";
@@ -30,3 +35,26 @@ try {
 
 // displaySongs(true, "travlin");
 displaySongs(false);
+
+// const logo = document.getElementById("admin-logo");
+
+// /* ===== Desktop: Shift + Click ===== */
+// logo.addEventListener("click", (e) => {
+//   if (e.shiftKey) {
+//     if (window.location.origin == "http://127.0.0.1:5500") {
+//       window.location.href = "/docs/admin-settings.html";
+//     }
+//     else {
+//       window.location.href = "/admin-settings.html";
+//     }
+//   }
+// });
+
+// /* ===== Mobile: Long Press ===== */
+// let pressTimer;
+
+// logo.addEventListener("touchstart", () => {
+//   pressTimer = setTimeout(() => {
+//     window.location.href = "/admin-settings.html";
+//   }, 1200); // 1.2 
+

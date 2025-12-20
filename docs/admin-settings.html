@@ -12,6 +12,7 @@
     />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <script type="module" src="scripts/admin-settings-ui.js"></script>
+    <script type="module" src="scripts/navigation.js"></script>
     <script type="module" src="scripts/cowboy-loading.js"></script>
 
     <link rel="icon" type="image/x-icon" href="images/favicon.png" />
@@ -21,63 +22,65 @@
     <div id="popups">
       <!-- Playlist Popup -->
       <div
-          id="selectPlaylistContainer"
-          style="--bs-bg-opacity: 0.75"
-          class="d-none bg-black vw-100 vh-100 fixed-top d-flex justify-content-center align-items-center text-center"
-        >
-          <div class="bg-body w-75 h-75 rounded-5 d-flex flex-column">
-            <h1 class="mt-4 vh-25">Choose Playlist</h1>
-            <div class="flex-grow h-100 overflow-auto" id="playlistList">
-              <div
-                id="playlistExampleElement"
-                class="bg-body rounded-5 p-3 m-3 d-flex justify-content-center align-items-center"
-              >
-                <img
-                  src="https://i.scdn.co/image/ab67616d00004851f00a1acf866539632b187ea0"
-                  alt="Country Music"
-                />
-                <h4 class="ms-4">Country Music</h4>
-              </div>
-              <div
-                id="playlistExampleElement"
-                class="rounded-5 p-3 m-3 d-flex justify-content-center align-items-center"
-              >
-                <img
-                  src="https://i.scdn.co/image/ab67616d00004851f00a1acf866539632b187ea0"
-                  alt="Country Music"
-                />
-                <h4 class="ms-4">Country Music</h4>
-              </div>
+        id="selectPlaylistContainer"
+        style="--bs-bg-opacity: 0.75"
+        class="d-none bg-black vw-100 vh-100 fixed-top d-flex justify-content-center align-items-center text-center"
+      >
+        <div class="bg-body w-75 h-75 rounded-5 d-flex flex-column">
+          <h1 class="mt-4 vh-25">Choose Playlist</h1>
+          <div class="flex-grow h-100 overflow-auto" id="playlistList">
+            <div
+              id="playlistExampleElement"
+              class="bg-body rounded-5 p-3 m-3 d-flex justify-content-center align-items-center"
+            >
+              <img
+                src="https://i.scdn.co/image/ab67616d00004851f00a1acf866539632b187ea0"
+                alt="Country Music"
+              />
+              <h4 class="ms-4">Country Music</h4>
             </div>
-            <div class="mb-4 d-flex justify-content-evenly">
-              <button id="CancelPlaylistSelect" class="btn btn-danger">
-                Cancel
-              </button>
-              <button id="SelectPlaylistSelect" class="btn btn-primary">
-                Select
-              </button>
+            <div
+              id="playlistExampleElement"
+              class="rounded-5 p-3 m-3 d-flex justify-content-center align-items-center"
+            >
+              <img
+                src="https://i.scdn.co/image/ab67616d00004851f00a1acf866539632b187ea0"
+                alt="Country Music"
+              />
+              <h4 class="ms-4">Country Music</h4>
             </div>
           </div>
+          <div class="mb-4 d-flex justify-content-evenly">
+            <button id="CancelPlaylistSelect" class="btn btn-danger">
+              Cancel
+            </button>
+            <button id="SelectPlaylistSelect" class="btn btn-primary">
+              Select
+            </button>
+          </div>
         </div>
+      </div>
 
-        <!-- Confirmation Popup -->
-         <div
-          id="confirmationPopupContainer"
-          style="--bs-bg-opacity: 0.75"
-          class="d-none bg-black vw-100 vh-100 fixed-top d-flex justify-content-center align-items-center text-center"
+      <!-- Confirmation Popup -->
+      <div
+        id="confirmationPopupContainer"
+        style="--bs-bg-opacity: 0.75"
+        class="d-none bg-black vw-100 vh-100 fixed-top d-flex justify-content-center align-items-center text-center"
+      >
+        <div
+          class="bg-body w-75 h-25 rounded-5 d-flex flex-column justify-content-evenly"
         >
-          <div class="bg-body w-75 h-25 rounded-5 d-flex flex-column justify-content-evenly">
-            <h1 class="mt-4">Confirm Clear Requests</h1>
-            <div class="mb-4 d-flex justify-content-evenly">
-              <button id="cancelClearRequests" class="btn btn-danger">
-                Cancel
-              </button>
-              <button id="confirmClearRequests" class="btn btn-primary">
-                Confirm
-              </button>
-            </div>
+          <h1 class="mt-4">Confirm Clear Requests</h1>
+          <div class="mb-4 d-flex justify-content-evenly">
+            <button id="cancelClearRequests" class="btn btn-danger">
+              Cancel
+            </button>
+            <button id="confirmClearRequests" class="btn btn-primary">
+              Confirm
+            </button>
           </div>
         </div>
+      </div>
     </div>
 
     <header>
@@ -94,7 +97,6 @@
       class="flex-grow-1 flex text-center justify-contet-center align-items-center"
       id="main"
     >
-
       <cowboy-loader
         size="200"
         speed="2.6s"
@@ -171,11 +173,17 @@
             <label for="autoAdd">Auto Add</label>
           </div>
           <div id="autoAddSelection" class="visually-hidden">
-          <div class="mb-2 mt-3">
-            <label for="autoAddQuantity" class="fs-5">Quantity</label>
-            <input type="number" id="autoAddQuantity" class="ms-3 w-25 btn btn-outline-primary" value="3" min="1"/>
-          </div>
-          <!-- time selection -->
+            <div class="mb-2 mt-3">
+              <label for="autoAddQuantity" class="fs-5">Quantity</label>
+              <input
+                type="number"
+                id="autoAddQuantity"
+                class="ms-3 w-25 btn btn-outline-primary"
+                value="3"
+                min="1"
+              />
+            </div>
+            <!-- time selection -->
             <h5 class="mb-3 mt-3">Set Time</h5>
             <div class="d-flex flex-column align-items-center">
               <div class="container mb-4 w-75">
@@ -303,7 +311,12 @@
       </div>
     </main>
     <footer class="text-center text-wrap">
-      <p class="mt-3 mb-4 ps-3 pe-3">See anything wrong? Please email us: <a href="mailto:mwangsard25@gmail.com?subject=Bug%20report">mwangsard25@gmail.com</a></p>
+      <p class="mt-3 mb-4 ps-3 pe-3">
+        See anything wrong? Please email us:
+        <a href="mailto:mwangsard25@gmail.com?subject=Bug%20report"
+          >mwangsard25@gmail.com</a
+        >
+      </p>
     </footer>
   </body>
 </html>
