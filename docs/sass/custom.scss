@@ -6,6 +6,10 @@ $secondary: #324924;
 
 $input-placeholder-color: white;
 
+html {
+    -webkit-touch-callout: none;
+}
+
 #requestLimit {
   width: fit-content;
 }

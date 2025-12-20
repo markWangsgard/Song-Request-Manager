@@ -1,4 +1,8 @@
 @charset "UTF-8";
+html {
+  -webkit-touch-callout: none;
+}
+
 #requestLimit {
   width: fit-content;
 }

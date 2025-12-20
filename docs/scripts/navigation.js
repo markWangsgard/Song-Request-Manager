@@ -41,8 +41,11 @@ navPopupContainer.appendChild(innerBox);
 document.body.insertBefore(navPopupContainer, document.body.firstChild);
 
 
-
-
+navPopupContainer.addEventListener('click', (e) => {
+  if (e.target === navPopupContainer) {
+    closeModal();
+  }
+});
 // Navigation Modal Logic
 
 const adminModal = document.getElementById("NavigationPopupContainer");
@@ -66,10 +69,15 @@ document.getElementById("goAdminSettings").onclick = () => {
 
 function openModal() {
   adminModal.classList.remove("d-none");
+  document.body.classList.add("no-scroll");
+}
+function closeModal() {
+  adminModal.classList.add("d-none");
+  document.body.classList.remove("no-scroll");
 }
 
 // Logo element
-const logo = document.getElementById("admin-logo");
+const logo = document.getElementById("logo");
 
 // Disable default context menu on long-press / right-click
 logo.addEventListener("contextmenu", (e) => e.preventDefault());
@@ -90,7 +98,6 @@ function startPress(e) {
 
   // Desktop: Shift+Click or Ctrl+Click opens modal
   if (e.shiftKey || e.ctrlKey) {
-    console.log("Opening admin modal");
     openModal();
     return;
   }
