@@ -41,20 +41,23 @@ navPopupContainer.appendChild(innerBox);
 document.body.insertBefore(navPopupContainer, document.body.firstChild);
 
 
+
+
+
+// Navigation Modal Logic
+const adminModal = navPopupContainer;
+
+// Close modal if clicking outside the inner box
 navPopupContainer.addEventListener('click', (e) => {
   if (e.target === navPopupContainer) {
     closeModal();
   }
 });
-// Navigation Modal Logic
-
-const adminModal = document.getElementById("NavigationPopupContainer");
 
 // Determine base path
-// const basePath = window.location.origin === "https://markwangsgard.github.io" ? "/Song-Request-Manager/" : "/docs/";
-const basePath = window.location.origin === "http://127.0.0.1:5500" ?  "/docs/" : "/Song-Request-Manager/";
+const basePath = window.location.origin === "http://127.0.0.1:5500" ? "/docs/" : "/Song-Request-Manager/";
 
-// Buttons
+// Modal buttons
 document.getElementById("goHome").onclick = () => {
   window.location.href = basePath + "index.html";
 };
@@ -67,10 +70,12 @@ document.getElementById("goAdminSettings").onclick = () => {
   window.location.href = basePath + "admin-settings.html";
 };
 
+// Open / close modal
 function openModal() {
   adminModal.classList.remove("d-none");
   document.body.classList.add("no-scroll");
 }
+
 function closeModal() {
   adminModal.classList.add("d-none");
   document.body.classList.remove("no-scroll");
@@ -79,43 +84,35 @@ function closeModal() {
 // Logo element
 const logo = document.getElementById("logo");
 
-// Disable default context menu on long-press / right-click
+// Disable default context menu on right-click / long-press
 logo.addEventListener("contextmenu", (e) => e.preventDefault());
 
-let pressTimer;
-const longPressDuration = 600; // ms
+// Double-click / double-tap logic
+let clickCount = 0;
+const clickTimeout = 400; // ms window for multiple taps
+let timer = null;
 
-logo.addEventListener("touchstart", startPress);
-logo.addEventListener("mousedown", startPress);
-
-logo.addEventListener("touchend", cancelPress);
-logo.addEventListener("mouseup", cancelPress);
-logo.addEventListener("mouseleave", cancelPress);
-
-function startPress(e) {
-  // Prevent default mobile behavior (like image menu)
-  if (e.type === "touchstart") e.preventDefault();
-
-  // Desktop: Shift+Click or Ctrl+Click opens modal
+logo.addEventListener("click", (e) => {
+  // Shift/Ctrl click opens modal immediately
   if (e.shiftKey || e.ctrlKey) {
     openModal();
+    clickCount = 0;
+    clearTimeout(timer);
     return;
   }
 
-  // Start long-press timer for mobile
-  pressTimer = setTimeout(() => {
+  clickCount++;
+
+  if (clickCount === 2) { // double-click / double-tap
     openModal();
-  }, longPressDuration);
-}
-
-function cancelPress() {
-  clearTimeout(pressTimer);
-}
-
-// Normal click goes to Home
-logo.addEventListener("click", (e) => {
-  if (!e.shiftKey && !e.ctrlKey) {
-    window.location.href = basePath + "index.html";
+    clickCount = 0;
+    clearTimeout(timer);
+  } else {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      window.location.href = basePath + "index.html";
+      clickCount = 0;
+    }, clickTimeout);
   }
 });
 
