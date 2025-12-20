@@ -45,7 +45,6 @@ document.body.insertBefore(navPopupContainer, document.body.firstChild);
 
 
 // Navigation Modal Logic
-// const navPopupContainer = document.getElementById("NavigationPopupContainer");
 const adminModal = navPopupContainer;
 
 // Close modal if clicking outside the inner box
@@ -85,47 +84,50 @@ function closeModal() {
 // Logo element
 const logo = document.getElementById("logo");
 
-// Disable default context menu on right-click / long-press
+// Disable default context menu on long-press / right-click
 logo.addEventListener("contextmenu", (e) => e.preventDefault());
 
-// Double-click / double-tap logic (works for desktop and mobile)
-let clickCount = 0;
-const clickTimeout = 400; // ms window
-let timer = null;
+let pressTimer;
+const longPressDuration = 600; // ms
 
-function handleTap() {
-  clickCount++;
+// Start long-press or handle modifier keys
+function startPress(e) {
+  // Prevent default mobile behavior (like image menu)
+  if (e.type === "touchstart") e.preventDefault();
 
-  if (clickCount === 2) { // double-click / double-tap
-    openModal();
-    clickCount = 0;
-    clearTimeout(timer);
-  } else {
-    clearTimeout(timer);
-    timer = setTimeout(() => {
-      window.location.href = basePath + "index.html";
-      clickCount = 0;
-    }, clickTimeout);
-  }
-}
-
-// Desktop click
-logo.addEventListener("click", (e) => {
+  // Desktop: Shift+Click or Ctrl+Click opens modal
   if (e.shiftKey || e.ctrlKey) {
     openModal();
-    clickCount = 0;
-    clearTimeout(timer);
     return;
   }
-  handleTap();
+
+  // Start long-press timer for mobile
+  pressTimer = setTimeout(() => {
+    openModal();
+  }, longPressDuration);
+}
+
+// Cancel long-press
+function cancelPress() {
+  clearTimeout(pressTimer);
+}
+
+// Attach events
+logo.addEventListener("touchstart", startPress);
+logo.addEventListener("mousedown", startPress);
+
+logo.addEventListener("touchend", cancelPress);
+logo.addEventListener("mouseup", cancelPress);
+logo.addEventListener("mouseleave", cancelPress);
+
+// Normal click goes to Home
+logo.addEventListener("click", (e) => {
+  if (!e.shiftKey && !e.ctrlKey) {
+    window.location.href = basePath + "index.html";
+  }
 });
 
-// Mobile touch
-logo.addEventListener("touchend", (e) => {
-  handleTap();
-});
-
-// Escape key closes modal
+// Optional: Escape key closes modal
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     closeModal();
