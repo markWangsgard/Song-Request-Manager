@@ -48,7 +48,7 @@ document.body.insertBefore(navPopupContainer, document.body.firstChild);
 const adminModal = document.getElementById("NavigationPopupContainer");
 
 // Determine base path
-const basePath = window.location.origin === "https://markwangsgard.github.io/Song-Request-Manager/" ? "/" : "/docs/";
+const basePath = window.location.origin === "https://markwangsgard.github.io/Song-Request-Manager/" ? "/Song-Request-Manager/" : "/docs/";
 
 // Buttons
 document.getElementById("goHome").onclick = () => {
