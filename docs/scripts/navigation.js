@@ -69,20 +69,25 @@ function openModal() {
 }
 
 // Logo element
-const logo = document.getElementById("logo");
+const logo = document.getElementById("admin-logo");
 
-// Long-press / Shift+Click / Ctrl+Click
+// Disable default context menu on long-press / right-click
+logo.addEventListener("contextmenu", (e) => e.preventDefault());
+
 let pressTimer;
 const longPressDuration = 600; // ms
 
-logo.addEventListener("mousedown", startPress);
 logo.addEventListener("touchstart", startPress);
+logo.addEventListener("mousedown", startPress);
 
+logo.addEventListener("touchend", cancelPress);
 logo.addEventListener("mouseup", cancelPress);
 logo.addEventListener("mouseleave", cancelPress);
-logo.addEventListener("touchend", cancelPress);
 
 function startPress(e) {
+  // Prevent default mobile behavior (like image menu)
+  if (e.type === "touchstart") e.preventDefault();
+
   // Desktop: Shift+Click or Ctrl+Click opens modal
   if (e.shiftKey || e.ctrlKey) {
     console.log("Opening admin modal");
@@ -90,9 +95,9 @@ function startPress(e) {
     return;
   }
 
-  // Mobile: start long-press timer
+  // Start long-press timer for mobile
   pressTimer = setTimeout(() => {
-    openModal(); // long-press on mobile
+    openModal();
   }, longPressDuration);
 }
 
@@ -106,3 +111,4 @@ logo.addEventListener("click", (e) => {
     window.location.href = basePath + "index.html";
   }
 });
+
