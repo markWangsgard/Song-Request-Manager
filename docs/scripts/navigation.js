@@ -1,3 +1,5 @@
+import { isAdmin } from "./constants.js";
+
 // Create the main container div
 const navPopupContainer = document.createElement('div');
 navPopupContainer.id = 'NavigationPopupContainer';
@@ -55,7 +57,15 @@ navPopupContainer.addEventListener('click', (e) => {
 });
 
 // Determine base path
-const basePath = window.location.origin === "http://127.0.0.1:5500" ? "/docs/" : "/Song-Request-Manager/";
+const basePath =
+  window.location.origin === "http://127.0.0.1:5500"
+    ? "/docs/"
+    : "/Song-Request-Manager/";
+
+// Detect current page
+const currentPage = window.location.pathname.split("/").pop();
+const isAdminPage =
+  currentPage === "admin.html" || currentPage === "admin-settings.html";
 
 // Modal buttons
 document.getElementById("goHome").onclick = () => {
@@ -84,7 +94,7 @@ function closeModal() {
 // Logo element
 const logo = document.getElementById("logo");
 
-// Disable default context menu on long-press / right-click
+// Disable default context menu
 logo.addEventListener("contextmenu", (e) => e.preventDefault());
 
 let pressTimer;
@@ -92,19 +102,18 @@ const longPressDuration = 600; // ms
 
 // Start long-press or handle modifier keys
 function startPress(e) {
-  // Prevent default mobile behavior (like image menu)
+  if (isAdmin || isAdminPage) return; // click will handle modal, skip long-press
+
   if (e.type === "touchstart") e.preventDefault();
 
-  // Desktop: Shift+Click or Ctrl+Click opens modal
+  // Desktop shortcut
   if (e.shiftKey || e.ctrlKey) {
     openModal();
     return;
   }
 
-  // Start long-press timer for mobile
-  pressTimer = setTimeout(() => {
-    openModal();
-  }, longPressDuration);
+  // Mobile long-press
+  pressTimer = setTimeout(openModal, longPressDuration);
 }
 
 // Cancel long-press
@@ -112,7 +121,7 @@ function cancelPress() {
   clearTimeout(pressTimer);
 }
 
-// Attach events
+// Attach press events only for index.html behavior
 logo.addEventListener("touchstart", startPress);
 logo.addEventListener("mousedown", startPress);
 
@@ -120,14 +129,20 @@ logo.addEventListener("touchend", cancelPress);
 logo.addEventListener("mouseup", cancelPress);
 logo.addEventListener("mouseleave", cancelPress);
 
-// Normal click goes to Home
+// Click behavior
 logo.addEventListener("click", (e) => {
-  if (!e.shiftKey && !e.ctrlKey) {
-    window.location.href = basePath + "index.html";
+  if (isAdmin || isAdminPage) {
+    // Admin user or admin page: simple click opens modal
+    openModal();
+  } else {
+    // Non-admin on index: normal click goes home
+    if (!e.shiftKey && !e.ctrlKey) {
+      window.location.href = basePath + "index.html";
+    }
   }
 });
 
-// Optional: Escape key closes modal
+// Escape key closes modal
 document.addEventListener("keydown", (e) => {
   if (e.key === "Escape") {
     closeModal();

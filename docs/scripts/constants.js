@@ -20,6 +20,7 @@ export const selectedDays = {
   sunday: false,
 };
 export let autoAddTime = "22:30";
+export let isAdmin = false;
 
 export const loadSettingsFromApi = async () => {
   const result = await getSettings();
@@ -46,7 +47,6 @@ export const loadSettingsFromApi = async () => {
   setUserLocal(me);
 };
 
-export let isAdmin = false;
 
 export const setUser = (user) => {
   currentUser = user;
