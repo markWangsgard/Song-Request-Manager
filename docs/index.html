@@ -10,6 +10,9 @@
       href="https://fonts.googleapis.com/css2?family=Lobster&display=swap"
       rel="stylesheet"
     />
+
+    <link rel="manifest" href="manifest.json" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <script src="scripts/signalr/signalr.js"></script>
     <script type="module" src="scripts/home-ui.js"></script>
@@ -19,6 +22,12 @@
 
     <link rel="icon" type="image/x-icon" href="images/favicon.png" />
     <title>Snow College Western Swing</title>
+
+    <script>
+      if ("serviceWorker" in navigator) {
+        navigator.serviceWorker.register("service-worker.js");
+      }
+    </script>
   </head>
   <body class="d-flex flex-column vh-100">
     <header>
@@ -44,10 +53,7 @@
         />
       </nav>
       <h1 class="text-primary" id="SectionHeader">Requested songs</h1>
-      <div
-        id="results"
-        class="d-flex flex-wrap mw-100 justify-content-center"
-      >
+      <div id="results" class="d-flex flex-wrap mw-100 justify-content-center">
         <cowboy-loader size="200" speed="2.6s" color="white"></cowboy-loader>
 
         <!-- <h3> -->
@@ -57,7 +63,12 @@
       </div>
     </main>
     <footer class="text-center text-wrap">
-      <p class="mt-3 mb-4 ps-3 pe-3">See anything wrong? Please email us: <a href="mailto:mwangsard25@gmail.com?subject=Bug%20report">mwangsard25@gmail.com</a></p>
+      <p class="mt-3 mb-4 ps-3 pe-3">
+        See anything wrong? Please email us:
+        <a href="mailto:mwangsard25@gmail.com?subject=Bug%20report"
+          >mwangsard25@gmail.com</a
+        >
+      </p>
     </footer>
   </body>
 </html>
