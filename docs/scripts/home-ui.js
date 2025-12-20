@@ -34,5 +34,3 @@ try {
 }
 
 displaySongs(false);
-
-console.log(window.location.origin);
