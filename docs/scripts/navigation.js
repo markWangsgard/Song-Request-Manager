@@ -45,7 +45,7 @@ document.body.insertBefore(navPopupContainer, document.body.firstChild);
 
 
 // Navigation Modal Logic
-const navPopupContainer = document.getElementById("NavigationPopupContainer");
+// const navPopupContainer = document.getElementById("NavigationPopupContainer");
 const adminModal = navPopupContainer;
 
 // Close modal if clicking outside the inner box
