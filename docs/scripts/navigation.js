@@ -56,8 +56,7 @@ document.getElementById("goHome").onclick = () => {
 };
 
 document.getElementById("goAdmin").onclick = () => {
-  console.log(window.location.origin);
-  // window.location.href = basePath + "admin.html";
+  window.location.href = basePath + "admin.html";
 };
 
 document.getElementById("goAdminSettings").onclick = () => {
