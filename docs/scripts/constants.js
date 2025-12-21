@@ -19,7 +19,7 @@ export const selectedDays = {
   saturday: false,
   sunday: false,
 };
-export let autoAddTime = "22:30";
+export let autoAddTime = "22:15";
 export let isAdmin = false;
 
 export const loadSettingsFromApi = async () => {

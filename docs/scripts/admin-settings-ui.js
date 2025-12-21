@@ -220,7 +220,8 @@ const updateAutoAdd = () => {
   }
 };
 
-const loadSettings = () => {
+const loadSettings = async() => {
+  await loadSettingsFromApi();
   requestLimitInputElement.value = numbOfAllowedRequests;
 
   allowRepeatsSwitchElement.checked = allowRepeats;
@@ -237,7 +238,8 @@ const loadSettings = () => {
   saturdayCheckboxElement.checked = selectedDays.saturday;
   sundayCheckboxElement.checked = selectedDays.sunday;
 
-  timePickerElement.value = autoAddTime;
+  console.log("autoAddTime:", autoAddTime);
+  timePickerElement.value = "22:15";
   updateUser();
   updatePlaylist();
   updateAutoAdd();
@@ -327,7 +329,7 @@ try {
 if (!currentUser || currentUser.error) {
   await logout();
 }
-loadSettings();
+await loadSettings();
 const loaderElement = document.getElementById("loader");
 if (loaderElement) loaderElement.classList.add("d-none");
 const loginSectionElement = document.getElementById("loginSection");
