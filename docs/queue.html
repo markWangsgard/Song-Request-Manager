@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <link rel="stylesheet" href="./css/custom.css" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Lobster&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="manifest" href="manifest.json" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <script src="scripts/signalr/signalr.js"></script>
+    <script type="module" src="scripts/queue-ui.js"></script>
+    <script type="module" src="scripts/cowboy-loading.js"></script>
+
+    <link rel="icon" type="image/x-icon" href="images/favicon.png" />
+    <title>Snow College Western Swing</title>
+  </head>
+  <body class="d-flex flex-column vh-100">
+    <header class="">
+      <img
+        src="images/logo2.png"
+        alt="Snow College Western Swing Logo"
+        class="mx-auto d-block mt-5 invert"
+        style="width: 200px; height: auto"
+        id="logo"
+      />
+    </header>
+    <main
+      class="d-flex overflow-hidden flex-grow-1 text-center justify-contet-center align-items-center"
+      style="min-height: 0;"
+    >
+      <cowboy-loader
+        id="loader"
+        size="200"
+        speed="2.6s"
+        color="white"
+      ></cowboy-loader>
+      <h1 id="errorMessage" class="d-none text-primary m-3">
+        No Music Being Played Currently
+      </h1>
+      <div style="min-height: 0;" class="flex-grow w-100 d-flex flex-column flex-sm-row justify-content-sm-evenly">
+        <div
+          id="currentlyPlayingSection"
+          class="d-none d-flex flex-column justify-content-center justify-content-sm-start"
+        >
+          <h1 class="text-primary" id="currentlyPlayingHeader">
+            Currently Playing
+          </h1>
+          <div id="currentlyPlaying"></div>
+        </div>
+        <div
+          id="queueSection"
+          style="width: fit-content;"
+          class="d-none d-flex flex-column overflow-auto flex-grow-1 justify-content-center"
+        >
+          <h1 class="text-primary" id="comingUpHeader">Coming Up...</h1>
+          <div id="queue"  class=""></div>
+        </div>
+      </div>
+    </main>
+    <footer class="text-center text-wrap">
+      <p class="mt-3 mb-4 ps-3 pe-3">
+        See anything wrong? Please email us:
+        <a href="mailto:mwangsard25@gmail.com?subject=Bug%20report"
+          >mwangsard25@gmail.com</a
+        >
+      </p>
+    </footer>
+  </body>
+</html>

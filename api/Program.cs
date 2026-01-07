@@ -6,11 +6,12 @@ using Sprache;
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
+using Microsoft.VisualBasic;
 
 Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
-// builder.WebHost.UseUrls("http://127.0.0.1:5001");
+builder.WebHost.UseUrls("http://127.0.0.1:5001");
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -44,7 +45,7 @@ void BroadcastEvent(string source)
     }
     catch (Exception ex)
     {
-        
+
     }
 }
 
@@ -160,7 +161,7 @@ app.MapGet("/", async () =>
 
 app.MapGet("/ping", () =>
 {
-    
+
 
     var mountainTz = TimeZoneInfo.FindSystemTimeZoneById("America/Denver");
     var mountainHour = TimeZoneInfo.ConvertTimeFromUtc(
@@ -169,7 +170,7 @@ app.MapGet("/ping", () =>
     ).Hour;
     var utcDay = DateTime.UtcNow.DayOfWeek;
     // Keep awake between 08:00–18:00 UTC
-    if (mountainHour >= 18 && mountainHour < 23 && utcDay == DayOfWeek.Wednesday )
+    if (mountainHour >= 18 && mountainHour < 23 && utcDay == DayOfWeek.Wednesday)
     {
         return Results.Ok("Keeping awake");
     }
@@ -178,7 +179,7 @@ app.MapGet("/ping", () =>
     return Results.NoContent();
 });
 
-app.MapGet("/login/{user}", (string user, string returnTo = "https://song-request-manager.onrender.com/me") =>
+app.MapGet("/login/{user}", (string user, string returnTo = $"http://127.0.0.1:5001/me/abc") =>
 {
     var redirectUri = Uri.EscapeDataString(Environment.GetEnvironmentVariable("SPOTIFY_REDIRECT_URI"));
     string returnToUri = Uri.EscapeDataString(returnTo);
@@ -192,7 +193,7 @@ app.MapGet("/login/{user}", (string user, string returnTo = "https://song-reques
               $"&response_type=code" +
               $"&redirect_uri={redirectUri}" +
               $"&state={state}" +
-              $"&scope=user-read-private%20user-read-email%20playlist-modify-public%20playlist-modify-private%20playlist-read-private%20playlist-read-collaborative" +
+              $"&scope=user-read-private%20user-read-email%20playlist-modify-public%20playlist-modify-private%20playlist-read-private%20playlist-read-collaborative%20user-read-currently-playing%20user-read-playback-state" +
               $"&show_dialog=true";
 
     return Results.Redirect(url);
@@ -334,6 +335,65 @@ app.MapGet("/me/{user}/playlists", async (string user) =>
     return Results.Content(JsonSerializer.Serialize(playlistDatas), "application/json");
 });
 
+app.MapGet("/me/{user}/queue", async (string user) =>
+{
+    if (!PlaylistManager.Users.ContainsKey(user))
+    {
+        return Results.Json(new { error = "User not found" });
+    }
+
+    await APIManager.AccessToken();
+
+    APIManager.client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PlaylistManager.Users[user].userAccessToken);
+
+    var response = await APIManager.client.GetAsync("https://api.spotify.com/v1/me/player/queue");
+    var JsonObjectResponse = JsonSerializer.Deserialize<JsonObject>(await response.Content.ReadAsStringAsync());
+    JsonObjectResponse.TryGetPropertyValue("queue", out var queue);
+    List<SongData> queueSongs = new();
+    foreach (var song in queue.AsArray())
+    {
+        string songId = song["id"].ToString();
+        queueSongs.Add(await APIManager.GetSong(songId));
+    }
+
+    return Results.Json(queueSongs);
+});
+
+app.MapGet("/me/{user}/currently-playing", async (string user) =>
+{
+    if (!PlaylistManager.Users.ContainsKey(user))
+    {
+        return Results.Json(new { error = "User not found" });
+    }
+
+    await APIManager.AccessToken();
+
+    APIManager.client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PlaylistManager.Users[user].userAccessToken);
+
+    var response = await APIManager.client.GetAsync("https://api.spotify.com/v1/me/player/currently-playing");
+    if ((int)response.StatusCode != 204)
+    {
+
+        var JsonObjectResponse = JsonSerializer.Deserialize<JsonObject>(await response.Content.ReadAsStringAsync());
+        JsonObjectResponse.TryGetPropertyValue("is_playing", out var isPlaying);
+        if (isPlaying.ToString() == "true")
+        {
+            JsonObjectResponse.TryGetPropertyValue("item", out var songData);
+            SongData currentSong = await APIManager.GetSong(songData["id"].ToString());
+
+            JsonObjectResponse.TryGetPropertyValue("progress_ms", out var progress);
+            return Results.Json(new { currentSong, progress });
+        }
+        else
+        {
+            return Results.Json(new { error = "User is not playing music" });
+        }
+    }
+    else
+    {
+        return Results.Json(new { error = "User is not playing music" });
+    }
+});
 
 
 
@@ -535,7 +595,7 @@ app.MapPost("/store-settings/{user}", async (string user, Settings settings) =>
         {
             if (settings.autoAdd)
             {
-                
+
             }
         });
 
