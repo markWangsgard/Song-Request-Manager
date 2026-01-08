@@ -22,6 +22,7 @@ buttonsContainer.className = 'mb-4 d-flex justify-content-evenly';
 // Create buttons
 const buttons = [
   { id: 'goHome', text: 'Home' },
+  { id: 'goQueue', text: 'Queue' },
   { id: 'goAdmin', text: 'Admin' },
   { id: 'goAdminSettings', text: 'Admin Settings' }
 ];
@@ -70,6 +71,10 @@ const isAdminPage =
 // Modal buttons
 document.getElementById("goHome").onclick = () => {
   window.location.href = basePath + "index.html";
+};
+
+document.getElementById("goQueue").onclick = () => {
+  window.location.href = basePath + "queue.html";
 };
 
 document.getElementById("goAdmin").onclick = () => {

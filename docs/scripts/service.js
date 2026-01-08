@@ -146,3 +146,15 @@ export const waitForApiAndReload = async (interval = 2000) => {
   }
   setTimeout(waitForApiAndReload, interval);
 };
+
+export const getQueue = async () => {
+  const response = await fetch(`${myApiUrl}/me/${userID}/queue`);
+  const content = await response.json(); 
+  return content;
+};
+
+export const getCurrentlyPlayingSong = async () => {
+  const response = await fetch(`${myApiUrl}/me/${userID}/currently-playing`);
+  const content = await response.json();
+  return content;
+};
