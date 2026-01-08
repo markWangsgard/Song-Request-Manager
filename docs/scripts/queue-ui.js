@@ -5,6 +5,7 @@ const currentlyPlayingSectionElement = document.getElementById(
   "currentlyPlayingSection"
 );
 const upNextSectionElement = document.getElementById("queueSection");
+const errorMessageElement = document.getElementById("errorMessage");
 
 const updateQueue = async () => {
   const currentlyPlaying = await getCurrentlyPlayingSong();
@@ -13,10 +14,15 @@ const updateQueue = async () => {
   if (currentlyPlaying.error) {
     loader.remove();
 
-    const errorMessageElement = document.getElementById("errorMessage");
+    setTimeout(updateQueue(), 2000);
     errorMessageElement.classList.remove("d-none");
     console.error("No Music Playing");
+    return;
   }
+
+  errorMessageElement.classList.add("d-none");
+  currentlyPlayingSectionElement.classList.remove("d-none");
+  upNextSectionElement.classList.remove("d-none");
 
   const currentSong = currentlyPlaying.currentSong;
   const currentlyPlayingElement = document.getElementById("currentlyPlaying");
@@ -29,13 +35,13 @@ const updateQueue = async () => {
   queue.forEach((song) => {
     upNextElement.appendChild(createSongElement(song));
   });
+  const timeRemaining = currentlyPlaying.timeRemaining - 300;
+
+  setTimeout(updateQueue(), timeRemaining > 0 ? timeRemaining : 1000);
 };
 
 await updateQueue();
 loader.remove();
-
-currentlyPlayingSectionElement.classList.remove("d-none");
-upNextSectionElement.classList.remove("d-none");
 
 function createSongElement(song) {
   const resultElement = document.createElement("figure");
@@ -45,7 +51,7 @@ function createSongElement(song) {
   resultElement.classList.add("ms-4");
   resultElement.classList.add("p-3");
   resultElement.classList.add("me-4");
-    resultElement.classList.add("bg-secondary");
+  resultElement.classList.add("bg-secondary");
   resultElement.classList.add("rounded");
   //   resultElement.classList.add("w-100");
 
