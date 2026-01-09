@@ -86,8 +86,8 @@ function createSongElement(
   infoContainerElement.classList.add("align-items-center");
 
   const imgElement = document.createElement("img");
-  imgElement.style.width = currentlyPlaying ? "100px" : "75px";
-  imgElement.style.height = currentlyPlaying ? "100px" : "75px";
+  imgElement.style.width = currentlyPlaying ? "125px" : "75px";
+  imgElement.style.height = currentlyPlaying ? "125px" : "75px";
   imgElement.src = song.imgURL;
   imgElement.alt = song.trackName;
 
