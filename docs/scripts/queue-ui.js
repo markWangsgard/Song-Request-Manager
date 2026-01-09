@@ -15,10 +15,9 @@ const errorMessageElement = document.getElementById("errorMessage");
 await loadSettingsFromApi();
 
 const updateQueue = async () => {
-    
   if (currentUser === null || currentUser.error) {
     errorMessageElement.classList.remove("d-none");
-    errorMessageElement.textContent = "Please Login to Show Queue"
+    errorMessageElement.textContent = "Please Login to Show Queue";
     return;
   }
 
@@ -41,41 +40,15 @@ const updateQueue = async () => {
   const currentSong = currentlyPlaying.currentSong;
   const currentlyPlayingElement = document.getElementById("currentlyPlaying");
   currentlyPlayingElement.replaceChildren();
-  const currentlyPlayingSongInfoElement = createSongElement(currentSong);
+  //   console.log(currentlyPlaying.duration);
+  const currentlyPlayingSongInfoElement = createSongElement(
+    currentSong,
+    true,
+    currentlyPlaying.progress,
+    currentlyPlaying.duration
+  );
 
-  const progressBarDivElement = document.createElement("div");
-  progressBarDivElement.classList =
-    "mt-3 d-flex align-items-center justify-content-center";
-
-  const currentTimeElement = document.createElement("span");
-  currentTimeElement.classList = "me-3";
-
-  const progressBarElement = document.createElement("progress");
-  progressBarElement.classList = "w-50";
-  progressBarElement.style.accentColor = "#51c978";
-  progressBarElement.max = 100;
-
-  const endTimeElement = document.createElement("span");
-  endTimeElement.classList = "ps-3";
-  endTimeElement.textContent = formatTime(currentlyPlaying.duration);
-
-  progressBarDivElement.appendChild(currentTimeElement);
-  progressBarDivElement.appendChild(progressBarElement);
-  progressBarDivElement.appendChild(endTimeElement);
-  currentlyPlayingSongInfoElement.appendChild(progressBarDivElement);
-
-  let currentTime = currentlyPlaying.progress;
-  const duration = currentlyPlaying.duration;
-  const tracker = setInterval(() => {
-    if (currentTime >= (duration + 300)) {
-      clearInterval(tracker);
-      return;
-    }
-
-    currentTime += 100;
-    currentTimeElement.textContent = formatTime(currentTime);
-    progressBarElement.value = currentTime / duration * 100;
-  }, 100);
+  //   currentlyPlayingSongInfoElement.appendChild(progressBarDivElement);
 
   currentlyPlayingElement.appendChild(currentlyPlayingSongInfoElement);
 
@@ -93,7 +66,12 @@ const updateQueue = async () => {
 await updateQueue();
 loader.remove();
 
-function createSongElement(song) {
+function createSongElement(
+  song,
+  currentlyPlaying = false,
+  currentTime = 0,
+  duration = 0
+) {
   const resultElement = document.createElement("figure");
   resultElement.classList.add("ms-4");
   resultElement.classList.add("p-3");
@@ -108,8 +86,8 @@ function createSongElement(song) {
   infoContainerElement.classList.add("align-items-center");
 
   const imgElement = document.createElement("img");
-  imgElement.style.width = "75px";
-  imgElement.style.height = "75px";
+  imgElement.style.width = currentlyPlaying ? "100px" : "75px";
+  imgElement.style.height = currentlyPlaying ? "100px" : "75px";
   imgElement.src = song.imgURL;
   imgElement.alt = song.trackName;
 
@@ -125,10 +103,45 @@ function createSongElement(song) {
   artistElement.classList.add("text-start");
   artistElement.textContent = song.artistName;
 
+  const progressBarDivElement = document.createElement("div");
+  progressBarDivElement.classList =
+    "mt-3 d-flex align-items-center ";
+  if (currentlyPlaying) {
+    const currentTimeElement = document.createElement("span");
+    currentTimeElement.classList = "me-3";
+
+    const progressBarElement = document.createElement("progress");
+    progressBarElement.classList = "flex-grow-1";
+    progressBarElement.style.accentColor = "#51c978";
+    progressBarElement.max = 100;
+
+    const endTimeElement = document.createElement("span");
+    endTimeElement.classList = "ps-3";
+    endTimeElement.textContent = formatTime(duration);
+
+    const tracker = setInterval(() => {
+      if (currentTime >= duration + 300) {
+        clearInterval(tracker);
+        return;
+      }
+
+      currentTime += 100;
+      currentTimeElement.textContent = formatTime(currentTime);
+      progressBarElement.value = (currentTime / duration) * 100;
+    }, 100);
+
+    progressBarDivElement.appendChild(currentTimeElement);
+    progressBarDivElement.appendChild(progressBarElement);
+    progressBarDivElement.appendChild(endTimeElement);
+  }
+
   textContainer.appendChild(titleElement);
   textContainer.appendChild(artistElement);
   infoContainerElement.appendChild(imgElement);
   infoContainerElement.appendChild(textContainer);
+  if (currentlyPlaying) {
+    textContainer.appendChild(progressBarDivElement);
+  }
 
   resultElement.appendChild(infoContainerElement);
 
