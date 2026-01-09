@@ -1,4 +1,9 @@
-import { getCurrentlyPlayingSong, getQueue } from "./service.js";
+import { currentUser, loadSettingsFromApi } from "./constants.js";
+import {
+  getCurrentlyPlayingSong,
+  getQueue,
+  waitForApiAndReload,
+} from "./service.js";
 
 const loader = document.getElementById("loader");
 const currentlyPlayingSectionElement = document.getElementById(
@@ -7,74 +12,80 @@ const currentlyPlayingSectionElement = document.getElementById(
 const upNextSectionElement = document.getElementById("queueSection");
 const errorMessageElement = document.getElementById("errorMessage");
 
+await loadSettingsFromApi();
+
 const updateQueue = async () => {
-    console.log("Updating Queue");
-    const currentlyPlaying = await getCurrentlyPlayingSong();
-    const queue = await getQueue();
     
+  if (currentUser === null || currentUser.error) {
+    errorMessageElement.classList.remove("d-none");
+    errorMessageElement.textContent = "Please Login to Show Queue"
+    return;
+  }
+
+  const currentlyPlaying = await getCurrentlyPlayingSong();
+  const queue = await getQueue();
+
   if (currentlyPlaying.error) {
-      loader.remove();
-      
-      setTimeout(updateQueue(), 2000);
-      errorMessageElement.classList.remove("d-none");
-      console.error("No Music Playing");
+    loader.remove();
+
+    setTimeout(updateQueue, 2000);
+    errorMessageElement.classList.remove("d-none");
+    console.error("No Music Playing");
+    return;
+  }
+
+  errorMessageElement.classList.add("d-none");
+  currentlyPlayingSectionElement.classList.remove("d-none");
+  upNextSectionElement.classList.remove("d-none");
+
+  const currentSong = currentlyPlaying.currentSong;
+  const currentlyPlayingElement = document.getElementById("currentlyPlaying");
+  currentlyPlayingElement.replaceChildren();
+  const currentlyPlayingSongInfoElement = createSongElement(currentSong);
+
+  const progressBarDivElement = document.createElement("div");
+  progressBarDivElement.classList =
+    "mt-3 d-flex align-items-center justify-content-center";
+
+  const currentTimeElement = document.createElement("span");
+  currentTimeElement.classList = "me-3";
+
+  const progressBarElement = document.createElement("progress");
+  progressBarElement.classList = "w-50";
+  progressBarElement.style.accentColor = "#51c978";
+  progressBarElement.max = 100;
+
+  const endTimeElement = document.createElement("span");
+  endTimeElement.classList = "ps-3";
+  endTimeElement.textContent = formatTime(currentlyPlaying.duration);
+
+  progressBarDivElement.appendChild(currentTimeElement);
+  progressBarDivElement.appendChild(progressBarElement);
+  progressBarDivElement.appendChild(endTimeElement);
+  currentlyPlayingSongInfoElement.appendChild(progressBarDivElement);
+
+  let currentTime = currentlyPlaying.progress;
+  const duration = currentlyPlaying.duration;
+  const tracker = setInterval(() => {
+    if (currentTime >= (duration + 300)) {
+      clearInterval(tracker);
       return;
     }
-    
-    errorMessageElement.classList.add("d-none");
-    currentlyPlayingSectionElement.classList.remove("d-none");
-    upNextSectionElement.classList.remove("d-none");
-    
-    const currentSong = currentlyPlaying.currentSong;
-    const currentlyPlayingElement = document.getElementById("currentlyPlaying");
-    currentlyPlayingElement.replaceChildren();
-    const currentlyPlayingSongInfoElement = createSongElement(currentSong)
 
-    const progressBarDivElement = document.createElement("div");
-    progressBarDivElement.classList = "mt-3 d-flex align-items-center justify-content-center";
+    currentTime += 100;
+    currentTimeElement.textContent = formatTime(currentTime);
+    progressBarElement.value = currentTime / duration * 100;
+  }, 100);
 
-    const currentTimeElement = document.createElement("span");
-    currentTimeElement.classList = "me-3";
+  currentlyPlayingElement.appendChild(currentlyPlayingSongInfoElement);
 
-    const progressBarElement = document.createElement("progress");
-    progressBarElement.classList = "w-50"
-    progressBarElement.style.accentColor = "#51c978";
-    progressBarElement.max = currentlyPlaying.duration;
+  const upNextElement = document.getElementById("queue");
+  upNextElement.replaceChildren();
 
-    const endTimeElement = document.createElement("span");
-    endTimeElement.classList = "ps-3";
-    endTimeElement.textContent = formatTime(currentlyPlaying.duration);
-    
-    progressBarDivElement.appendChild(currentTimeElement);
-    progressBarDivElement.appendChild(progressBarElement);
-    progressBarDivElement.appendChild(endTimeElement);
-    currentlyPlayingSongInfoElement.appendChild(progressBarDivElement);
-    
-    let currentTime = currentlyPlaying.progress;
-    const duration = currentlyPlaying.duration;
-    const tracker = setInterval(() => {
-        if (currentTime >= duration)
-            {
-                clearInterval(tracker);
-                return;
-            }
-            
-            currentTime += 100;
-            currentTimeElement.textContent = formatTime(currentTime);
-            progressBarElement.value = currentTime;
-        
-
-    }, 100);
-
-    currentlyPlayingElement.appendChild(currentlyPlayingSongInfoElement);
-    
-    const upNextElement = document.getElementById("queue");
-    upNextElement.replaceChildren();
-    
-    queue.forEach((song) => {
-        upNextElement.appendChild(createSongElement(song));
-    });
-    const timeRemaining = currentlyPlaying.timeRemaining - 300;
+  queue.forEach((song) => {
+    upNextElement.appendChild(createSongElement(song));
+  });
+  const timeRemaining = currentlyPlaying.timeRemaining - 300;
 
   setTimeout(updateQueue, timeRemaining > 0 ? timeRemaining : 5000);
 };
@@ -90,12 +101,11 @@ function createSongElement(song) {
   resultElement.classList.add("bg-secondary");
   resultElement.classList.add("rounded");
   //   resultElement.classList.add("w-100");
-  
+
   const infoContainerElement = document.createElement("div");
   infoContainerElement.classList.add("d-flex");
   infoContainerElement.classList.add("justify-content-sm-center");
   infoContainerElement.classList.add("align-items-center");
-
 
   const imgElement = document.createElement("img");
   imgElement.style.width = "75px";
@@ -126,8 +136,8 @@ function createSongElement(song) {
 }
 
 function formatTime(milliseconds) {
-    const seconds = Math.floor(milliseconds / 1000)
-    const minutes = Math.floor(seconds / 60);
-    const remainingSeconds = Math.floor(seconds % 60);
-    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+  const seconds = Math.floor(milliseconds / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${minutes}:${remainingSeconds < 10 ? "0" : ""}${remainingSeconds}`;
 }
