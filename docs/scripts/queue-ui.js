@@ -28,7 +28,45 @@ const updateQueue = async () => {
     const currentSong = currentlyPlaying.currentSong;
     const currentlyPlayingElement = document.getElementById("currentlyPlaying");
     currentlyPlayingElement.replaceChildren();
-    currentlyPlayingElement.appendChild(createSongElement(currentSong));
+    const currentlyPlayingSongInfoElement = createSongElement(currentSong)
+
+    const progressBarDivElement = document.createElement("div");
+    progressBarDivElement.classList = "mt-3 d-flex align-items-center justify-content-center";
+
+    const currentTimeElement = document.createElement("span");
+    currentTimeElement.classList = "me-3";
+
+    const progressBarElement = document.createElement("progress");
+    progressBarElement.classList = "w-50"
+    progressBarElement.style.accentColor = "#51c978";
+    progressBarElement.max = currentlyPlaying.duration;
+
+    const endTimeElement = document.createElement("span");
+    endTimeElement.classList = "ps-3";
+    endTimeElement.textContent = formatTime(currentlyPlaying.duration);
+    
+    progressBarDivElement.appendChild(currentTimeElement);
+    progressBarDivElement.appendChild(progressBarElement);
+    progressBarDivElement.appendChild(endTimeElement);
+    currentlyPlayingSongInfoElement.appendChild(progressBarDivElement);
+    
+    let currentTime = currentlyPlaying.progress;
+    const duration = currentlyPlaying.duration;
+    const tracker = setInterval(() => {
+        if (currentTime >= duration)
+            {
+                clearInterval(tracker);
+                return;
+            }
+            
+            currentTime += 100;
+            currentTimeElement.textContent = formatTime(currentTime);
+            progressBarElement.value = currentTime;
+        
+
+    }, 100);
+
+    currentlyPlayingElement.appendChild(currentlyPlayingSongInfoElement);
     
     const upNextElement = document.getElementById("queue");
     upNextElement.replaceChildren();
@@ -46,15 +84,18 @@ loader.remove();
 
 function createSongElement(song) {
   const resultElement = document.createElement("figure");
-  resultElement.classList.add("d-flex");
-  resultElement.classList.add("justify-content-sm-center");
-  resultElement.classList.add("align-items-center");
   resultElement.classList.add("ms-4");
   resultElement.classList.add("p-3");
   resultElement.classList.add("me-4");
   resultElement.classList.add("bg-secondary");
   resultElement.classList.add("rounded");
   //   resultElement.classList.add("w-100");
+  
+  const infoContainerElement = document.createElement("div");
+  infoContainerElement.classList.add("d-flex");
+  infoContainerElement.classList.add("justify-content-sm-center");
+  infoContainerElement.classList.add("align-items-center");
+
 
   const imgElement = document.createElement("img");
   imgElement.style.width = "75px";
@@ -76,8 +117,17 @@ function createSongElement(song) {
 
   textContainer.appendChild(titleElement);
   textContainer.appendChild(artistElement);
-  resultElement.appendChild(imgElement);
-  resultElement.appendChild(textContainer);
+  infoContainerElement.appendChild(imgElement);
+  infoContainerElement.appendChild(textContainer);
+
+  resultElement.appendChild(infoContainerElement);
 
   return resultElement;
+}
+
+function formatTime(milliseconds) {
+    const seconds = Math.floor(milliseconds / 1000)
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
 }

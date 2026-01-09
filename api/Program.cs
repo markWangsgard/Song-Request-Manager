@@ -11,7 +11,7 @@ using Microsoft.VisualBasic;
 Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
-builder.WebHost.UseUrls("http://127.0.0.1:5001");
+// builder.WebHost.UseUrls("http://127.0.0.1:5001");
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -380,9 +380,11 @@ app.MapGet("/me/{user}/currently-playing", async (string user) =>
         {
             JsonObjectResponse.TryGetPropertyValue("item", out var songData);
             SongData currentSong = APIManager.filterSongData(JsonSerializer.Deserialize<JsonElement>(songData));
-            JsonObjectResponse.TryGetPropertyValue("progress_ms", out var progress);
-            int timeRemaining = (int)songData["duration_ms"] - (int)progress;
-            return Results.Json(new { currentSong, timeRemaining });
+            JsonObjectResponse.TryGetPropertyValue("progress_ms", out var progressJsonNode);
+            int duration = (int)songData["duration_ms"];
+            int progress = (int)progressJsonNode;
+            int timeRemaining = duration - (int)progressJsonNode;
+            return Results.Json(new { currentSong, progress, duration , timeRemaining });
         }
         else
         {
