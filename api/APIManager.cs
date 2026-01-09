@@ -64,6 +64,8 @@ public static class APIManager
             return accessToken;
         }
     }
+
+    private static Dictionary<string, SongData> songCache {get; set;} = new();
     public static async Task<SongData?> GetSong(string id)
     {
         if (string.IsNullOrWhiteSpace(id))
@@ -71,10 +73,16 @@ public static class APIManager
             return null;
         }
 
+        if (songCache.ContainsKey(id))
+        {
+            return songCache[id];
+        }
+
         accessToken = await AccessToken();
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
         using var response = await client.GetAsync($"https://api.spotify.com/v1/tracks/{id}/");
+        Console.WriteLine(response);
         if (!response.IsSuccessStatusCode)
         {
             return null;
@@ -177,6 +185,11 @@ public static class APIManager
             uri = Uri,
             timeRequested = DateTime.Now
         };
+
+        if (!songCache.ContainsKey(songData.id))
+        {
+            songCache.Add(songData.id, songData);
+        }
         return songData;
     }
     public static async Task<IResult> addSongToPlaylistAsync(string playlistId, string user, string songId)
