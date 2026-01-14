@@ -11,12 +11,12 @@ import {
 } from "./constants.js";
 
 const blacklist = [
-  "6JLcz9UGiVxAmEZXlCucn5",
-  "3OPcnA0I7z5gy5Pjgn9Z48",
-  "3gfftUbPd7tsIuSCxGgEbP",
-  "07Tx168RSsUS1HqkDIOZbH",
-  "0WCiI0ddWiu5F2kSHgfw5S",
-  "3BxWKCI06eQ5Od8TY2JBeA",
+  "6JLcz9UGiVxAmEZXlCucn5", // Wobble
+  "3OPcnA0I7z5gy5Pjgn9Z48", // Wobble
+  "3gfftUbPd7tsIuSCxGgEbP", // Wobble
+  "07Tx168RSsUS1HqkDIOZbH", // Cupid Shuffle
+  "0WCiI0ddWiu5F2kSHgfw5S", // Take it Off
+  "3BxWKCI06eQ5Od8TY2JBeA", // Buttons
 ];
 
 export const homeDisplaySongs = async (searching, query = "") => {
