@@ -10,6 +10,15 @@ import {
   loadSettingsFromApi,
 } from "./constants.js";
 
+const blacklist = [
+  "6JLcz9UGiVxAmEZXlCucn5",
+  "3OPcnA0I7z5gy5Pjgn9Z48",
+  "3gfftUbPd7tsIuSCxGgEbP",
+  "07Tx168RSsUS1HqkDIOZbH",
+  "0WCiI0ddWiu5F2kSHgfw5S",
+  "3BxWKCI06eQ5Od8TY2JBeA",
+];
+
 export const homeDisplaySongs = async (searching, query = "") => {
   const searchBarElement = document.getElementById("search");
   const resultsContainer = document.getElementById("results");
@@ -34,6 +43,9 @@ export const homeDisplaySongs = async (searching, query = "") => {
     resultsContainer.appendChild(noResultsElement);
   } else {
     results.forEach((result) => {
+      if (blacklist.includes(result.id)) {
+        return;
+      }
       const resultElement = document.createElement("figure");
       resultElement.classList.add("d-flex");
       resultElement.classList.add("justify-content-sm-center");
