@@ -17,6 +17,7 @@ const blacklist = [
   "07Tx168RSsUS1HqkDIOZbH", // Cupid Shuffle
   "0WCiI0ddWiu5F2kSHgfw5S", // Take it Off
   "3BxWKCI06eQ5Od8TY2JBeA", // Buttons
+  "0BxhafwvN6GXIyyvi27A0I", // Hot Wings
 ];
 
 export const homeDisplaySongs = async (searching, query = "") => {
