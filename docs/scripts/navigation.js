@@ -23,7 +23,7 @@ buttonsContainer.className = 'mb-4 d-flex justify-content-evenly';
 const buttons = [
   { id: 'goHome', text: 'Home' },
   { id: 'goQueue', text: 'Queue' },
-  { id: 'goAdmin', text: 'Admin' },
+  { id: 'goAdmin', text: 'Song Manager' },
   { id: 'goAdminSettings', text: 'Admin Settings' }
 ];
 
