@@ -426,10 +426,12 @@ app.MapGet("/search/{query}", async (string query) =>
     var jsonObject = JsonSerializer.Deserialize<JsonElement>(content);
     var jsonObjectTracks = jsonObject.GetProperty("tracks").GetProperty("items");
     var listOfTracks = new List<SongData>();
+    string[] blacklist = File.ReadAllLines("blacklist.json");
     foreach (var songElem in jsonObjectTracks.EnumerateArray())
     {
         var sd = APIManager.filterSongData(songElem);
-        if (sd != null) listOfTracks.Add(sd);
+
+        if (sd != null && !blacklist.Contains(sd.id)) listOfTracks.Add(sd);
     }
     return Results.Json(listOfTracks);
 });
