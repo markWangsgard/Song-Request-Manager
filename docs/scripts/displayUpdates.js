@@ -69,12 +69,18 @@ export const homeDisplaySongs = async (searching, query = "") => {
         }`;
       }
 
+      const idElement = document.createElement("p");
+      idElement.textContent = `ID: ${result.id}`;
+
       textContainer.appendChild(titleElement);
       textContainer.appendChild(artistElement);
       resultElement.appendChild(imgElement);
       resultElement.appendChild(textContainer);
       if (!searching) {
         textContainer.appendChild(countElement);
+      }
+      if (currentUser.email === "mwangsgard25@gmail.com") {
+        textContainer.appendChild(idElement);
       }
 
       resultsContainer.appendChild(resultElement);
@@ -163,6 +169,9 @@ export const adminDisplaySongs = async (searching, query = "") => {
         }`;
       }
 
+      const idElement = document.createElement("p");
+      idElement.textContent = `ID: ${result.id}`;
+
       const addOrCheck = songsAddedToPlaylist.includes(result.id)
         ? "check"
         : "add-icon";
@@ -181,6 +190,9 @@ export const adminDisplaySongs = async (searching, query = "") => {
       }
       if (!searching) {
         textContainer.appendChild(countElement);
+      }
+      if (currentUser.email === "mwangsgard25@gmail.com") {
+        textContainer.appendChild(idElement);
       }
 
       resultsContainer.appendChild(resultElement);

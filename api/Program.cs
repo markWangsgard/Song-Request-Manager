@@ -426,12 +426,25 @@ app.MapGet("/search/{query}", async (string query) =>
     var jsonObject = JsonSerializer.Deserialize<JsonElement>(content);
     var jsonObjectTracks = jsonObject.GetProperty("tracks").GetProperty("items");
     var listOfTracks = new List<SongData>();
-    string[] blacklist = File.ReadAllLines("blacklist.json");
+    string blacklistJson = File.ReadAllText("blacklist.json");
+    string[] blacklist = JsonSerializer.Deserialize<string[]>(blacklistJson);
+    foreach (var item in blacklist)
+    {
+        Console.WriteLine("Blacklisted ID:");
+        Console.WriteLine(item);
+    }
     foreach (var songElem in jsonObjectTracks.EnumerateArray())
     {
         var sd = APIManager.filterSongData(songElem);
 
-        if (sd != null && !blacklist.Contains(sd.id)) listOfTracks.Add(sd);
+        if (sd != null && !blacklist.Contains(sd.id)) 
+        {
+            listOfTracks.Add(sd);
+        }
+        else
+        {
+            Console.WriteLine($"Filtered out blacklisted song ID: {sd.id}");
+        }
     }
     return Results.Json(listOfTracks);
 });
