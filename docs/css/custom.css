@@ -30,15 +30,24 @@ input[type=number] {
   .responsive-width {
     width: 75%; /* 75% width on small screens and above */
   }
+  .h-sm-25 {
+    height: 25% !important;
+  }
 }
 @media (min-width: 768px) {
   .responsive-width {
     width: 50%; /* 50% width on medium screens and above */
   }
+  .h-md-25 {
+    height: 25% !important;
+  }
 }
 @media (min-width: 992px) {
   .responsive-width {
     width: 25%; /* 25% width on large screens and above */
+  }
+  .h-lg-25 {
+    height: 25% !important;
   }
 }
 /* From Uiverse.io by gharsh11032000 */

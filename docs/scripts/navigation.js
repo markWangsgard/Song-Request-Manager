@@ -1,36 +1,38 @@
 import { isAdmin } from "./constants.js";
 
 // Create the main container div
-const navPopupContainer = document.createElement('div');
-navPopupContainer.id = 'NavigationPopupContainer';
-navPopupContainer.className = 'd-none bg-black vw-100 vh-100 fixed-top d-flex justify-content-center align-items-start text-center';
-navPopupContainer.style.setProperty('--bs-bg-opacity', '0.75');
+const navPopupContainer = document.createElement("div");
+navPopupContainer.id = "NavigationPopupContainer";
+navPopupContainer.className =
+  "d-none bg-black vw-100 vh-100 fixed-top d-flex justify-content-center align-items-start text-center";
+navPopupContainer.style.setProperty("--bs-bg-opacity", "0.75");
 
 // Create the inner box div
-const innerBox = document.createElement('div');
-innerBox.className = 'bg-body mt-5 w-75 h-25 rounded-5 d-flex flex-column justify-content-evenly';
+const innerBox = document.createElement("div");
+innerBox.className =
+  "bg-body mt-5 w-75 h-md-25 rounded-5 d-flex flex-column justify-content-evenly";
 
 // Create the heading
-const heading = document.createElement('h1');
-heading.className = 'mt-4 p-2';
-heading.textContent = 'What page would you like to go to?';
+const heading = document.createElement("h1");
+heading.className = "mt-4 p-2";
+heading.textContent = "What page would you like to go to?";
 
 // Create the buttons container
-const buttonsContainer = document.createElement('div');
-buttonsContainer.className = 'mb-4 d-flex justify-content-evenly';
+const buttonsContainer = document.createElement("div");
+buttonsContainer.classList = "mb-4 d-flex flex-column flex-md-row justify-content-evenly";
 
 // Create buttons
 const buttons = [
-  { id: 'goHome', text: 'Home' },
-  { id: 'goQueue', text: 'Queue' },
-  { id: 'goAdmin', text: 'Song Manager' },
-  { id: 'goAdminSettings', text: 'Admin Settings' }
+  { id: "goHome", text: "Home" },
+  { id: "goQueue", text: "Queue" },
+  { id: "goAdmin", text: "Song Manager" },
+  { id: "goAdminSettings", text: "Admin Settings" },
 ];
 
-buttons.forEach(btnInfo => {
-  const button = document.createElement('button');
+buttons.forEach((btnInfo) => {
+  const button = document.createElement("button");
   button.id = btnInfo.id;
-  button.className = 'btn btn-outline-primary';
+  button.className = "btn btn-outline-primary m-2";
   button.textContent = btnInfo.text;
   buttonsContainer.appendChild(button);
 });
@@ -43,15 +45,11 @@ navPopupContainer.appendChild(innerBox);
 // Insert at the very start of the body
 document.body.insertBefore(navPopupContainer, document.body.firstChild);
 
-
-
-
-
 // Navigation Modal Logic
 const adminModal = navPopupContainer;
 
 // Close modal if clicking outside the inner box
-navPopupContainer.addEventListener('click', (e) => {
+navPopupContainer.addEventListener("click", (e) => {
   if (e.target === navPopupContainer) {
     closeModal();
   }
@@ -153,4 +151,3 @@ document.addEventListener("keydown", (e) => {
     closeModal();
   }
 });
-
