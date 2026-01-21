@@ -3,6 +3,11 @@
   width: fit-content;
 }
 
+#queue {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
 .invert {
   filter: invert(1);
 }
