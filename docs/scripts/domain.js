@@ -12,6 +12,13 @@ if (!userID) {
   window.localStorage.setItem("userID", userID);
 }
 
+export const GetLineDanceSongs = async () => {
+  const response = await fetch("LineDance.json");
+  return await response.json();
+
+};
+
+
 const limitReached = async () => {
   const requests = await getUserRequests(userID);
   if (requests.statusCode) {

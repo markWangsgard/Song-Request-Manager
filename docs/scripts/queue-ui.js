@@ -1,4 +1,5 @@
 import { currentUser, loadSettingsFromApi } from "./constants.js";
+import { GetLineDanceSongs } from "./domain.js";
 import {
   getCurrentlyPlayingSong,
   getQueue,
@@ -29,6 +30,8 @@ const updateQueue = async () => {
 
     setTimeout(updateQueue, 2000);
     errorMessageElement.classList.remove("d-none");
+    currentlyPlayingSectionElement.classList.add("d-none");
+    upNextSectionElement.classList.add("d-none");
     console.error("No Music Playing");
     return;
   }
@@ -41,7 +44,7 @@ const updateQueue = async () => {
   const currentlyPlayingElement = document.getElementById("currentlyPlaying");
   currentlyPlayingElement.replaceChildren();
   //   console.log(currentlyPlaying.duration);
-  const currentlyPlayingSongInfoElement = createSongElement(
+  const currentlyPlayingSongInfoElement = await createSongElement(
     currentSong,
     true,
     currentlyPlaying.progress,
@@ -55,18 +58,21 @@ const updateQueue = async () => {
   const upNextElement = document.getElementById("queue");
   upNextElement.replaceChildren();
 
-  queue.forEach((song) => {
-    upNextElement.appendChild(createSongElement(song));
+  queue.forEach(async (song) => {
+    upNextElement.appendChild(await createSongElement(song));
   });
   const timeRemaining = currentlyPlaying.timeRemaining - 300;
 
   setTimeout(updateQueue, timeRemaining > 0 ? timeRemaining : 5000);
+  // setTimeout(updateQueue, 2000);
 };
+
+
 
 await updateQueue();
 loader.remove();
 
-function createSongElement(
+async function createSongElement(
   song,
   currentlyPlaying = false,
   currentTime = 0,
@@ -76,10 +82,19 @@ function createSongElement(
   resultElement.classList.add("ms-4");
   resultElement.classList.add("p-3");
   resultElement.classList.add("me-4");
-  resultElement.classList.add("bg-secondary");
   resultElement.classList.add("rounded");
   //   resultElement.classList.add("w-100");
-
+  
+  const lineDanceSongs = await GetLineDanceSongs();
+  resultElement.classList.add("border");
+  resultElement.classList.add("border-primary");
+  if (lineDanceSongs.includes(song.id)) {
+    resultElement.classList.add("bg-secondary");
+    resultElement.classList.add("border-4");    
+  } else {
+    resultElement.classList.add("bg-body");
+  }
+  
   const infoContainerElement = document.createElement("div");
   infoContainerElement.classList.add("d-flex");
   infoContainerElement.classList.add("justify-content-sm-center");
@@ -102,6 +117,10 @@ function createSongElement(
   const artistElement = document.createElement("h4");
   artistElement.classList.add("text-start");
   artistElement.textContent = song.artistName;
+
+  const idElement = document.createElement("p");
+  idElement.classList.add("text-start");
+  idElement.textContent = `ID: ${song.id}`;
 
   const progressBarDivElement = document.createElement("div");
   progressBarDivElement.classList =
@@ -137,6 +156,10 @@ function createSongElement(
 
   textContainer.appendChild(titleElement);
   textContainer.appendChild(artistElement);
+  if (currentUser.email === "mwangsgard25@gmail.com")
+  {
+    textContainer.appendChild(idElement);
+  }
   infoContainerElement.appendChild(imgElement);
   infoContainerElement.appendChild(textContainer);
   if (currentlyPlaying) {
