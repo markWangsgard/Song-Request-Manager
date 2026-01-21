@@ -35,9 +35,6 @@ export const homeDisplaySongs = async (searching, query = "") => {
     resultsContainer.appendChild(noResultsElement);
   } else {
     results.forEach((result) => {
-      if (blacklist.includes(result.id)) {
-        return;
-      }
       const resultElement = document.createElement("figure");
       resultElement.classList.add("d-flex");
       resultElement.classList.add("justify-content-sm-center");
