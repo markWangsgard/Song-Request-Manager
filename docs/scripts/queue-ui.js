@@ -8,7 +8,7 @@ import {
 
 const loader = document.getElementById("loader");
 const currentlyPlayingSectionElement = document.getElementById(
-  "currentlyPlayingSection"
+  "currentlyPlayingSection",
 );
 const upNextSectionElement = document.getElementById("queueSection");
 const errorMessageElement = document.getElementById("errorMessage");
@@ -18,7 +18,14 @@ await loadSettingsFromApi();
 const updateQueue = async () => {
   if (currentUser === null || currentUser.error) {
     errorMessageElement.classList.remove("d-none");
-    errorMessageElement.textContent = "Please Login to Show Queue";
+    
+    const linkElement = document.createElement("a");
+    linkElement.classList.add("text-decoration-none");
+    linkElement.textContent = "Please Login to Show Queue";
+    linkElement.href = `./admin-settings.html`;
+
+    errorMessageElement.replaceChildren();
+    errorMessageElement.appendChild(linkElement);
     return;
   }
 
@@ -48,7 +55,7 @@ const updateQueue = async () => {
     currentSong,
     true,
     currentlyPlaying.progress,
-    currentlyPlaying.duration
+    currentlyPlaying.duration,
   );
 
   //   currentlyPlayingSongInfoElement.appendChild(progressBarDivElement);
@@ -67,8 +74,6 @@ const updateQueue = async () => {
   // setTimeout(updateQueue, 2000);
 };
 
-
-
 await updateQueue();
 loader.remove();
 
@@ -76,7 +81,7 @@ async function createSongElement(
   song,
   currentlyPlaying = false,
   currentTime = 0,
-  duration = 0
+  duration = 0,
 ) {
   const resultElement = document.createElement("figure");
   resultElement.classList.add("ms-4");
@@ -84,17 +89,17 @@ async function createSongElement(
   resultElement.classList.add("me-4");
   resultElement.classList.add("rounded");
   //   resultElement.classList.add("w-100");
-  
+
   const lineDanceSongs = await GetLineDanceSongs();
   resultElement.classList.add("border");
   resultElement.classList.add("border-primary");
   if (lineDanceSongs.includes(song.id)) {
     resultElement.classList.add("bg-secondary");
-    resultElement.classList.add("border-4");    
+    resultElement.classList.add("border-4");
   } else {
     resultElement.classList.add("bg-body");
   }
-  
+
   const infoContainerElement = document.createElement("div");
   infoContainerElement.classList.add("d-flex");
   infoContainerElement.classList.add("justify-content-sm-center");
@@ -123,8 +128,7 @@ async function createSongElement(
   idElement.textContent = `ID: ${song.id}`;
 
   const progressBarDivElement = document.createElement("div");
-  progressBarDivElement.classList =
-    "mt-3 d-flex align-items-center ";
+  progressBarDivElement.classList = "mt-3 d-flex align-items-center ";
   if (currentlyPlaying) {
     const currentTimeElement = document.createElement("span");
     currentTimeElement.classList = "me-3";
@@ -156,8 +160,7 @@ async function createSongElement(
 
   textContainer.appendChild(titleElement);
   textContainer.appendChild(artistElement);
-  if (currentUser.email === "mwangsgard25@gmail.com")
-  {
+  if (currentUser.email === "mwangsgard25@gmail.com") {
     textContainer.appendChild(idElement);
   }
   infoContainerElement.appendChild(imgElement);
