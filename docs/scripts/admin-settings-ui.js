@@ -177,7 +177,7 @@ const addAllEventListeners = async () => {
   });
 
   masterAdminSelectElement.addEventListener("input", () => {
-    selectedAdmin = masterAdminSelectElement.value;
+    const selectedAdmin = masterAdminSelectElement.value;
     setMasterAdmin(selectedAdmin);
   });
 };
