@@ -355,12 +355,11 @@ admins.forEach((admin) => {
 await loadSettings();
 
 if (admins.length === 1 )
-{
-  masterAdminSelectElement.value = admins[0];
-  setMasterAdmin(admins[0]);
-  // set master admin here
-}
-
+  {
+    masterAdminSelectElement.value = admins[0];
+    setMasterAdmin(admins[0]);
+    // set master admin here
+  }
 const loaderElement = document.getElementById("loader");
 if (loaderElement) loaderElement.classList.add("d-none");
 const loginSectionElement = document.getElementById("loginSection");

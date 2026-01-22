@@ -264,7 +264,15 @@ app.MapGet("/callback", async (string code, string state) =>
 
 app.MapGet("/logout/{user}", async (string user) =>
 {
+    string userEmail = PlaylistManager.Admins.ContainsKey(user) && PlaylistManager.Admins[user] != null ? PlaylistManager.Admins[user].email : "unknown";
+    if (PlaylistManager.settings.masterAdmin != null
+        && PlaylistManager.settings.masterAdmin.email == userEmail
+        && PlaylistManager.Admins.Values.Count(a => a.email == userEmail) == 1)
+    {
+        PlaylistManager.settings.masterAdmin = null;
+    }
     PlaylistManager.Admins[user] = null;
+
     var response = await APIManager.client.GetAsync("https://accounts.spotify.com/en/logout ");
 });
 
@@ -351,7 +359,7 @@ app.MapGet("/admin/queue", async () =>
     {
         return Results.Json(new { error = "No master admin set" });
     }
-    
+
     await APIManager.AccessToken();
 
     APIManager.client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PlaylistManager.settings.masterAdmin.userAccessToken);

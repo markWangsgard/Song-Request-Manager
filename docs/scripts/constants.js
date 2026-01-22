@@ -30,6 +30,7 @@ export const loadSettingsFromApi = async () => {
 
   // update local settings
   currentPlaylist = settings.currentPlaylist;
+  masterAdmin = settings.masterAdmin;
   numbOfAllowedRequests = settings.numbOfAllowedRequests;
   allowRepeats = settings.allowRepeats;
   autoAdd = settings.autoAdd;
