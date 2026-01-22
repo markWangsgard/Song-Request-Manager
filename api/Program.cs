@@ -161,22 +161,8 @@ app.MapGet("/", async () =>
 
 app.MapGet("/ping", () =>
 {
-
-
-    var mountainTz = TimeZoneInfo.FindSystemTimeZoneById("America/Denver");
-    var mountainHour = TimeZoneInfo.ConvertTimeFromUtc(
-        DateTime.UtcNow,
-        mountainTz
-    ).Hour;
-    var utcDay = DateTime.UtcNow.DayOfWeek;
-    // Keep awake between 08:00–18:00 UTC
-    if (mountainHour >= 18 && mountainHour < 23 && utcDay == DayOfWeek.Wednesday)
-    {
-        return Results.Ok("Keeping awake");
-    }
-
-    // Still counts as activity, but does nothing
-    return Results.NoContent();
+    Console.WriteLine("Ping received to keep awake.");
+    return Results.Ok("Keeping awake");
 });
 
 app.MapGet("/login/{user}", (string user, string returnTo = $"http://127.0.0.1:5001/me/abc") =>
@@ -384,7 +370,7 @@ app.MapGet("/me/{user}/currently-playing", async (string user) =>
             int duration = (int)songData["duration_ms"];
             int progress = (int)progressJsonNode;
             int timeRemaining = duration - (int)progressJsonNode;
-            return Results.Json(new { currentSong, progress, duration , timeRemaining });
+            return Results.Json(new { currentSong, progress, duration, timeRemaining });
         }
         else
         {
@@ -428,22 +414,13 @@ app.MapGet("/search/{query}", async (string query) =>
     var listOfTracks = new List<SongData>();
     string blacklistJson = File.ReadAllText("blacklist.json");
     string[] blacklist = JsonSerializer.Deserialize<string[]>(blacklistJson);
-    foreach (var item in blacklist)
-    {
-        Console.WriteLine("Blacklisted ID:");
-        Console.WriteLine(item);
-    }
     foreach (var songElem in jsonObjectTracks.EnumerateArray())
     {
         var sd = APIManager.filterSongData(songElem);
 
-        if (sd != null && !blacklist.Contains(sd.id)) 
+        if (sd != null && !blacklist.Contains(sd.id))
         {
             listOfTracks.Add(sd);
-        }
-        else
-        {
-            Console.WriteLine($"Filtered out blacklisted song ID: {sd.id}");
         }
     }
     return Results.Json(listOfTracks);
