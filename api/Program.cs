@@ -185,8 +185,19 @@ app.MapGet("/login/{user}", (string user, string returnTo = $"http://127.0.0.1:5
     return Results.Redirect(url);
 });
 
-app.MapGet("/callback", async (string code, string state) =>
+app.MapGet("/callback", async (HttpRequest request) =>
 {
+    var code = request.Query["code"].ToString();
+    var state = request.Query["state"].ToString();
+    var error = request.Query["error"].ToString();
+
+    State currentState = JsonSerializer.Deserialize<State>(state);
+
+    if (!string.IsNullOrEmpty(error))
+    {
+        return Results.Redirect(currentState.ReturnTo + $"?error={Uri.EscapeDataString(error)}");
+    }
+
     var clientId = Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_ID");
     var clientSecret = Environment.GetEnvironmentVariable("SPOTIFY_CLIENT_SECRET");
     var redirectUri = Environment.GetEnvironmentVariable("SPOTIFY_REDIRECT_URI");
@@ -218,7 +229,6 @@ app.MapGet("/callback", async (string code, string state) =>
     var responseMe = APIManager.client.GetAsync("https://api.spotify.com/v1/me/");
     var responseMessage = await responseMe;
 
-    State currentState = JsonSerializer.Deserialize<State>(state);
 
     if (responseMessage.StatusCode.ToString() == "OK")
     {
