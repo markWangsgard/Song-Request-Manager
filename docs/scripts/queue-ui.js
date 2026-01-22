@@ -18,11 +18,11 @@ const errorMessageElement = document.getElementById("errorMessage");
 await loadSettingsFromApi();
 
 const updateQueue = async () => {
-  if (currentUser === null || currentUser.error) {
-    errorMessageElement.classList.remove("d-none");
-    errorMessageElement.textContent = "Please Login to Show Queue";
-    return;
-  }
+  // if (currentUser === null || currentUser.error) {
+    // errorMessageElement.classList.remove("d-none");
+    // errorMessageElement.textContent = "Please Login to Show Queue";
+    // return;
+  // }
 
   const currentlyPlaying = await getMasterCurrentlyPlayingSong();
   const queue = await getMasterQueue();
