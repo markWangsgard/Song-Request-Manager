@@ -155,11 +155,23 @@ export const getQueue = async () => {
   return content;
 };
 
+export const getMasterQueue = async () => {
+  const response = await fetch(`${myApiUrl}/admin/queue`);
+  const content = await response.json(); 
+  return content;
+};
+
 export const getCurrentlyPlayingSong = async () => {
   const response = await fetch(`${myApiUrl}/me/${userID}/currently-playing`);
   const content = await response.json();
   return content;
 };
+
+export const getMasterCurrentlyPlayingSong = async () => {
+  const response = await fetch(`${myApiUrl}/admin/currently-playing`);
+  const content = await response.json();
+  return content;
+}
 
 export const getAdmins = async () => {
   const response = await fetch(`${myApiUrl}/admin/get-admins`);

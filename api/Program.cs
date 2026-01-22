@@ -488,18 +488,6 @@ app.MapGet("/search/{query}", async (string query) =>
     return Results.Json(listOfTracks);
 });
 
-app.MapGet("/admin/set-master-admin/{user}", async (string user) =>
-{
-    if (!PlaylistManager.Admins.ContainsKey(user))
-    {
-        return Results.Json(new { error = "User not found" });
-    }
-
-    PlaylistManager.settings.masterAdmin = PlaylistManager.Admins[user];
-
-    return Results.Json(new { status = "Master admin set", masterAdmin = PlaylistManager.settings.masterAdmin.displayName });
-});
-
 app.MapGet("/admin/get-admins", () =>
 {
     var adminList = PlaylistManager.Admins.Where(kvp => kvp.Value != null)
@@ -635,7 +623,6 @@ app.MapPost("/store-settings/{user}", async (string user, Settings settings) =>
         PlaylistManager.settings.allowRepeats = settings.allowRepeats;
         PlaylistManager.settings.autoAdd = settings.autoAdd;
         PlaylistManager.settings.masterAdmin = settings.masterAdmin;
-        Console.WriteLine("Master admin set to: " + PlaylistManager.settings.masterAdmin?.displayName);
 
         // Notify the PlaylistManager signal about the change to autoAdd so the background
         // worker can block/unblock immediately without busy-waiting.

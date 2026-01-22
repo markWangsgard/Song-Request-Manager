@@ -2,7 +2,9 @@ import { currentUser, loadSettingsFromApi } from "./constants.js";
 import { GetLineDanceSongs } from "./domain.js";
 import {
   getCurrentlyPlayingSong,
+  getMasterCurrentlyPlayingSong,
   getQueue,
+  getMasterQueue,
   waitForApiAndReload,
 } from "./service.js";
 
@@ -22,8 +24,8 @@ const updateQueue = async () => {
     return;
   }
 
-  const currentlyPlaying = await getCurrentlyPlayingSong();
-  const queue = await getQueue();
+  const currentlyPlaying = await getMasterCurrentlyPlayingSong();
+  const queue = await getMasterQueue();
 
   if (currentlyPlaying.error) {
     loader.remove();
