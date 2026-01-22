@@ -11,7 +11,7 @@ using Microsoft.VisualBasic;
 Env.Load();
 var builder = WebApplication.CreateBuilder(args);
 
-// builder.WebHost.UseUrls("http://127.0.0.1:5001");
+builder.WebHost.UseUrls("http://127.0.0.1:5001");
 
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -502,7 +502,18 @@ app.MapGet("/admin/set-master-admin/{user}", async (string user) =>
 
 app.MapGet("/admin/get-admins", () =>
 {
-    return PlaylistManager.Admins;
+    var adminList = PlaylistManager.Admins.Where(kvp => kvp.Value != null)
+                                          .DistinctBy(kvp => kvp.Value.email)
+                                          .Select(kvp => new
+                                          {
+                                              deviceId = kvp.Key,
+                                              kvp.Value?.accessTokenExpiresAt,
+                                              kvp.Value?.displayName,
+                                              kvp.Value?.email,
+                                              kvp.Value?.userAccessToken,
+                                              kvp.Value?.userRefreshToken
+                                          }).ToList();
+    return Results.Json(adminList);
 });
 
 

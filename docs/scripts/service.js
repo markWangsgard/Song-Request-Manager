@@ -158,3 +158,9 @@ export const getCurrentlyPlayingSong = async () => {
   const content = await response.json();
   return content;
 };
+
+export const getAdmins = async () => {
+  const response = await fetch(`${myApiUrl}/admin/get-admins`);
+  const admins = await response.json();
+  return admins;
+}

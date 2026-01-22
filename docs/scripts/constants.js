@@ -1,10 +1,11 @@
 import { getSettings, setSettings, scheduleSetSettings } from "./service.js";
 
-// export const myApiUrl = "http://127.0.0.1:5001";
-export const myApiUrl = "https://song-request-manager.onrender.com";
+export const myApiUrl = "http://127.0.0.1:5001";
+// export const myApiUrl = "https://song-request-manager.onrender.com";
 
 // settings
 export let currentUser = null;
+export let masterAdmin = null;
 export let currentPlaylist = null;
 export let numbOfAllowedRequests = 3;
 export let allowRepeats = true;

@@ -23,6 +23,7 @@ import {
   isAdmin,
   autoAddQuantity,
   setAutoAddQuantity,
+  masterAdmin,
 } from "./constants.js";
 import { songsAddedToPlaylist, userID } from "./domain.js";
 import {
@@ -32,10 +33,12 @@ import {
   logout,
   clearRequestsAPI,
   waitForApiAndReload,
+  getAdmins,
 } from "./service.js";
 
 const bodyElement = document.getElementById("body");
 const loginButton = document.getElementById("signIn");
+const masterAdminSelectElement = document.getElementById("selectMasterAdmin");
 const selectPlaylistButton = document.getElementById("selectPlaylist");
 const userNameElement = document.getElementById("userName");
 const requestLimitInputElement = document.getElementById("requestLimit");
@@ -222,6 +225,9 @@ const updateAutoAdd = () => {
 
 const loadSettings = async() => {
   await loadSettingsFromApi();
+  
+  masterAdminSelectElement.value = masterAdmin ? masterAdmin.userID : "";
+
   requestLimitInputElement.value = numbOfAllowedRequests;
 
   allowRepeatsSwitchElement.checked = allowRepeats;
@@ -329,7 +335,25 @@ try {
 if (!currentUser || currentUser.error) {
   await logout();
 }
+
+const admins = await getAdmins();
+console.log(admins);
+
+admins.forEach((admin) => {
+  const optionElement = document.createElement("option");
+  optionElement.value = admin.userID;
+  optionElement.textContent = admin.displayName;
+  masterAdminSelectElement.appendChild(optionElement);
+});
+
 await loadSettings();
+
+if (admins.length === 1 )
+{
+  masterAdminSelectElement.value = admins[0].userID;
+  // set master admin here
+}
+
 const loaderElement = document.getElementById("loader");
 if (loaderElement) loaderElement.classList.add("d-none");
 const loginSectionElement = document.getElementById("loginSection");
