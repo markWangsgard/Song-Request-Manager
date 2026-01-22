@@ -1,4 +1,4 @@
-import { currentUser, loadSettingsFromApi } from "./constants.js";
+import { currentUser, loadSettingsFromApi, masterAdmin } from "./constants.js";
 import { GetLineDanceSongs } from "./domain.js";
 import {
   getCurrentlyPlayingSong,
@@ -23,6 +23,13 @@ const updateQueue = async () => {
     // errorMessageElement.textContent = "Please Login to Show Queue";
     // return;
   // }
+
+  if (masterAdmin === null || masterAdmin.error) {
+    errorMessageElement.classList.remove("d-none");
+    errorMessageElement.textContent =
+      "No Master Admin Set. Please contact the application administrator.";
+    return;
+  }
 
   const currentlyPlaying = await getMasterCurrentlyPlayingSong();
   const queue = await getMasterQueue();
@@ -158,7 +165,7 @@ async function createSongElement(
 
   textContainer.appendChild(titleElement);
   textContainer.appendChild(artistElement);
-  if (currentUser.email === "mwangsgard25@gmail.com")
+  if (currcurrentUser.email === "mwangsgard25@gmail.com")
   {
     textContainer.appendChild(idElement);
   }
