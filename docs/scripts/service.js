@@ -6,6 +6,7 @@ import {
   currentPlaylist,
   currentUser,
   loadSettingsFromApi,
+  masterAdmin,
   myApiUrl,
   numbOfAllowedRequests,
   selectedDays,
@@ -73,6 +74,7 @@ export const getMe = async () => {
 export const setSettings = async () => {
   if (currentUser && !currentUser.error) {
     const settings = {
+      masterAdmin,
       currentPlaylist,
       numbOfAllowedRequests,
       allowRepeats,

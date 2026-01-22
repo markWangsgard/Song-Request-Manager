@@ -53,6 +53,10 @@ export const setUser = (user) => {
   currentUser = user;
   scheduleSetSettings();
 };
+export const setMasterAdmin = (admin) => {
+  masterAdmin = admin;
+  scheduleSetSettings();
+}
 export const setUserLocal = (user) => {
   currentUser = user;
 };

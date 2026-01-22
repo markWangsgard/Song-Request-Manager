@@ -24,6 +24,7 @@ import {
   autoAddQuantity,
   setAutoAddQuantity,
   masterAdmin,
+  setMasterAdmin,
 } from "./constants.js";
 import { songsAddedToPlaylist, userID } from "./domain.js";
 import {
@@ -174,6 +175,11 @@ const addAllEventListeners = async () => {
     popupElement.classList.add("d-none");
     bodyElement.classList.remove("no-scroll");
   });
+
+  masterAdminSelectElement.addEventListener("input", () => {
+    selectedAdmin = masterAdminSelectElement.value;
+    setMasterAdmin(selectedAdmin);
+  });
 };
 
 const updateUser = () => {
@@ -226,7 +232,7 @@ const updateAutoAdd = () => {
 const loadSettings = async() => {
   await loadSettingsFromApi();
   
-  masterAdminSelectElement.value = masterAdmin ? masterAdmin.userID : "";
+  masterAdminSelectElement.value = masterAdmin ? masterAdmin : "";
 
   requestLimitInputElement.value = numbOfAllowedRequests;
 
@@ -341,7 +347,7 @@ console.log(admins);
 
 admins.forEach((admin) => {
   const optionElement = document.createElement("option");
-  optionElement.value = admin.userID;
+  optionElement.value = admin;
   optionElement.textContent = admin.displayName;
   masterAdminSelectElement.appendChild(optionElement);
 });
@@ -350,7 +356,8 @@ await loadSettings();
 
 if (admins.length === 1 )
 {
-  masterAdminSelectElement.value = admins[0].userID;
+  masterAdminSelectElement.value = admins[0];
+  setMasterAdmin(admins[0]);
   // set master admin here
 }
 

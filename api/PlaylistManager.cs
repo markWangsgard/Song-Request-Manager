@@ -24,7 +24,7 @@ public static class PlaylistManager
 
     public static void SetMasterAdmin(Admin admin)
     {
-        settings.MasterAdmin = admin;
+        settings.masterAdmin = admin;
     }
 
     public static void SetMasterAdmin(string deviceId)
