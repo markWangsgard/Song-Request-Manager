@@ -165,7 +165,7 @@ async function createSongElement(
 
   textContainer.appendChild(titleElement);
   textContainer.appendChild(artistElement);
-  if (currcurrentUser.email === "mwangsgard25@gmail.com")
+  if (currentUser !== null && currentUser.email === "mwangsgard25@gmail.com")
   {
     textContainer.appendChild(idElement);
   }
