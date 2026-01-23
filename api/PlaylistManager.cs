@@ -22,16 +22,11 @@ public static class PlaylistManager
         try { autoAddSemaphore = new SemaphoreSlim(settings.autoAdd ? 1 : 0, 1); } catch { autoAddSemaphore = new SemaphoreSlim(0, 1); }
     }
 
-    public static void SetMasterAdmin(Admin admin)
-    {
-        settings.masterAdmin = admin;
-    }
-
     public static void SetMasterAdmin(string deviceId)
     {
         if (Admins.ContainsKey(deviceId))
         {
-            SetMasterAdmin(Admins[deviceId]);
+            settings.masterAdminId = deviceId;
         }
     }
 
@@ -152,11 +147,11 @@ public static class PlaylistManager
                         }
                         else
                         {
-                        for (int i = 0; i < topSongs.Count; i++)
-                        {
-                            // Add topSongs to current playlist
-                                    await APIManager.addSongToPlaylistAsync(settings.currentPlaylist.Id, admin, topSongs[i].id);
-                        }
+                            for (int i = 0; i < topSongs.Count; i++)
+                            {
+                                // Add topSongs to current playlist
+                                await APIManager.addSongToPlaylistAsync(settings.currentPlaylist.Id, admin, topSongs[i].id);
+                            }
                             Console.WriteLine("added songs automatically");
                         }
 

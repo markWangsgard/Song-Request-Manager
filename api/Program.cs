@@ -265,11 +265,11 @@ app.MapGet("/callback", async (string code, string state) =>
 app.MapGet("/logout/{user}", async (string user) =>
 {
     string userEmail = PlaylistManager.Admins.ContainsKey(user) && PlaylistManager.Admins[user] != null ? PlaylistManager.Admins[user].email : "unknown";
-    if (PlaylistManager.settings.masterAdmin != null
-        && PlaylistManager.settings.masterAdmin.email == userEmail
+    if (PlaylistManager.settings.masterAdminId != null
+        && PlaylistManager.Admins[PlaylistManager.settings.masterAdminId].email == userEmail
         && PlaylistManager.Admins.Values.Count(a => a.email == userEmail) == 1)
     {
-        PlaylistManager.settings.masterAdmin = null;
+        PlaylistManager.settings.masterAdminId = null;
     }
     PlaylistManager.Admins[user] = null;
 
@@ -355,14 +355,14 @@ app.MapGet("/me/{user}/queue", async (string user) =>
 
 app.MapGet("/admin/queue", async () =>
 {
-    if (PlaylistManager.settings.masterAdmin == null)
+    if (PlaylistManager.settings.masterAdminId == null)
     {
         return Results.Json(new { error = "No master admin set" });
     }
 
     await APIManager.AccessToken();
 
-    APIManager.client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PlaylistManager.settings.masterAdmin.userAccessToken);
+    APIManager.client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PlaylistManager.Admins[PlaylistManager.settings.masterAdminId].userAccessToken);
 
     var response = await APIManager.client.GetAsync("https://api.spotify.com/v1/me/player/queue");
     var JsonObjectResponse = JsonSerializer.Deserialize<JsonObject>(await response.Content.ReadAsStringAsync());
@@ -379,14 +379,14 @@ app.MapGet("/admin/queue", async () =>
 
 app.MapGet("/admin/currently-playing", async () =>
 {
-    if (PlaylistManager.settings.masterAdmin == null)
+    if (PlaylistManager.settings.masterAdminId == null)
     {
         return Results.Json(new { error = "No master admin set" });
     }
 
     await APIManager.AccessToken();
 
-    APIManager.client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PlaylistManager.settings.masterAdmin.userAccessToken);
+    APIManager.client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PlaylistManager.Admins[PlaylistManager.settings.masterAdminId].userAccessToken);
 
     var response = await APIManager.client.GetAsync("https://api.spotify.com/v1/me/player/currently-playing");
     if ((int)response.StatusCode != 204)
@@ -503,11 +503,11 @@ app.MapGet("/admin/get-admins", () =>
                                           .Select(kvp => new
                                           {
                                               deviceId = kvp.Key,
-                                              kvp.Value?.accessTokenExpiresAt,
+                                            //   kvp.Value?.accessTokenExpiresAt,
                                               kvp.Value?.displayName,
-                                              kvp.Value?.email,
-                                              kvp.Value?.userAccessToken,
-                                              kvp.Value?.userRefreshToken
+                                            //   kvp.Value?.email,
+                                            //   kvp.Value?.userAccessToken,
+                                            //   kvp.Value?.userRefreshToken
                                           }).ToList();
     return Results.Json(adminList);
 });
@@ -611,7 +611,7 @@ app.MapPost("/store-settings/{user}", async (string user, Settings settings) =>
         // If incoming settings are identical to current settings, skip processing and broadcasting
         bool settingsEqual =
             PlaylistManager.settings.currentPlaylist == settings.currentPlaylist
-            && PlaylistManager.settings.masterAdmin == settings.masterAdmin
+            && PlaylistManager.settings.masterAdminId == settings.masterAdminId
             && PlaylistManager.settings.numbOfAllowedRequests == settings.numbOfAllowedRequests
             && PlaylistManager.settings.allowRepeats == settings.allowRepeats
             && PlaylistManager.settings.autoAdd == settings.autoAdd
@@ -630,7 +630,7 @@ app.MapPost("/store-settings/{user}", async (string user, Settings settings) =>
         PlaylistManager.settings.numbOfAllowedRequests = settings.numbOfAllowedRequests;
         PlaylistManager.settings.allowRepeats = settings.allowRepeats;
         PlaylistManager.settings.autoAdd = settings.autoAdd;
-        PlaylistManager.settings.masterAdmin = settings.masterAdmin;
+        PlaylistManager.settings.masterAdminId = settings.masterAdminId;
 
         // Notify the PlaylistManager signal about the change to autoAdd so the background
         // worker can block/unblock immediately without busy-waiting.
