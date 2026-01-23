@@ -74,7 +74,7 @@ export const getMe = async () => {
 export const setSettings = async () => {
   if (currentUser && !currentUser.error) {
     const settings = {
-      masterAdminId : masterAdmin.deviceId,
+      masterAdminId : masterAdmin?.deviceId ?? "",
       currentPlaylist,
       numbOfAllowedRequests,
       allowRepeats,
