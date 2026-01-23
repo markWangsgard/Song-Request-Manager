@@ -499,7 +499,7 @@ app.MapGet("/search/{query}", async (string query) =>
 app.MapGet("/admin/get-admins", () =>
 {
     var adminList = PlaylistManager.Admins.Where(kvp => kvp.Value != null)
-                                          .DistinctBy(kvp => kvp.Value.email)
+                                        //   .DistinctBy(kvp => kvp.Value.email)
                                           .Select(kvp => new
                                           {
                                               deviceId = kvp.Key,
