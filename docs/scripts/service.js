@@ -174,7 +174,7 @@ export const getMasterCurrentlyPlayingSong = async () => {
 }
 
 export const getAdmins = async () => {
-  const response = await fetch(`${myApiUrl}/admin/get-admins`);
+  const response = await fetch(`${myApiUrl}/admin/get-admins/${userID}`);
   const admins = await response.json();
   return admins;
 }

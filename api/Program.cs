@@ -496,15 +496,16 @@ app.MapGet("/search/{query}", async (string query) =>
     return Results.Json(listOfTracks);
 });
 
-app.MapGet("/admin/get-admins", () =>
+app.MapGet("/admin/get-admins/{user}", (string user) =>
 {
     var adminList = PlaylistManager.Admins.Where(kvp => kvp.Value != null)
+                                          .OrderByDescending(kvp => kvp.Key == user)
                                           .DistinctBy(kvp => kvp.Value.email)
                                           .Select(kvp => new
                                           {
                                               deviceId = kvp.Key,
                                             //   kvp.Value?.accessTokenExpiresAt,
-                                              kvp.Value?.displayName,
+                                              displayName = kvp.Value?.displayName + (kvp.Key == user ? " (This Device)" : ""),
                                             //   kvp.Value?.email,
                                             //   kvp.Value?.userAccessToken,
                                             //   kvp.Value?.userRefreshToken
