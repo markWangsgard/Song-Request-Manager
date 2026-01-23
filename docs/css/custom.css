@@ -3,11 +3,6 @@
   width: fit-content;
 }
 
-#queue {
-  max-height: 50vh;
-  overflow-y: auto;
-}
-
 .invert {
   filter: invert(1);
 }
@@ -48,6 +43,10 @@ input[type=number] {
   }
   .h-lg-25 {
     height: 25% !important;
+  }
+  #queue {
+    max-height: 50vh;
+    overflow-y: auto;
   }
 }
 /* From Uiverse.io by gharsh11032000 */
