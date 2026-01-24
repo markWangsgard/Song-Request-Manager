@@ -669,8 +669,6 @@ app.MapPost("/store-settings/{user}", async (string user, Settings settings) =>
         bool limitDecreased = PlaylistManager.settings.numbOfAllowedRequests > settings.numbOfAllowedRequests;
         bool allowRepeatsChanged = PlaylistManager.settings.allowRepeats != settings.allowRepeats;
 
-        Console.WriteLine($"First Master Admin: {PlaylistManager.settings.masterAdminId}");
-        Console.WriteLine($"New Master Admin: {settings.masterAdminId}");
         PlaylistManager.settings.masterAdminId = settings.masterAdminId;
         PlaylistManager.settings.currentPlaylist = settings.currentPlaylist;
         PlaylistManager.settings.numbOfAllowedRequests = settings.numbOfAllowedRequests;
@@ -738,7 +736,6 @@ app.MapGet("/get-settings/", () =>
         ? PlaylistManager.Admins[masterAdminId].displayName
         : null;
     
-    Console.WriteLine($"Getting settings. Master Admin ID: {masterAdminId}, Display Name: {masterAdminDisplayName}");
     return Results.Json(new
     {
         settings.currentPlaylist,
