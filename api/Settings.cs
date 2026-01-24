@@ -1,6 +1,6 @@
 public class Settings
 {
-    List<string> acceptableEmails = new() { "mwangsgard25@gmail.com", "millermyers0@gmail.com", "masonjhansen2@gmail.com", "connorheadman88@gmail.com", "ethanhintze011@gmail.com" };
+    List<string> acceptableEmails = new() { "mwangsgard25@gmail.com", "millermyers0@gmail.com", "masonjhansen2@gmail.com", "connorheadman88@gmail.com", "ethanhintze011@gmail.com", "mw3dprinting@outlook.com" };
     public string masterAdminId { get; set; }
     public PlaylistData currentPlaylist { get; set; }
     public int numbOfAllowedRequests { get; set; } = 3;
