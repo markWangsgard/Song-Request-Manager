@@ -6,6 +6,7 @@ import {
   currentPlaylist,
   currentUser,
   loadSettingsFromApi,
+  masterAdmin,
   myApiUrl,
   numbOfAllowedRequests,
   selectedDays,
@@ -73,6 +74,7 @@ export const getMe = async () => {
 export const setSettings = async () => {
   if (currentUser && !currentUser.error) {
     const settings = {
+      masterAdminId : masterAdmin?.deviceId ?? "",
       currentPlaylist,
       numbOfAllowedRequests,
       allowRepeats,
@@ -83,7 +85,7 @@ export const setSettings = async () => {
     };
     const jsonString = JSON.stringify(settings);
     await fetch(`${myApiUrl}/store-settings/${userID}`, {
-      body: JSON.stringify(settings),
+      body: jsonString,
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -153,8 +155,26 @@ export const getQueue = async () => {
   return content;
 };
 
+export const getMasterQueue = async () => {
+  const response = await fetch(`${myApiUrl}/admin/queue`);
+  const content = await response.json(); 
+  return content;
+};
+
 export const getCurrentlyPlayingSong = async () => {
   const response = await fetch(`${myApiUrl}/me/${userID}/currently-playing`);
   const content = await response.json();
   return content;
 };
+
+export const getMasterCurrentlyPlayingSong = async () => {
+  const response = await fetch(`${myApiUrl}/admin/currently-playing`);
+  const content = await response.json();
+  return content;
+}
+
+export const getAdmins = async () => {
+  const response = await fetch(`${myApiUrl}/admin/get-admins/${userID}`);
+  const admins = await response.json();
+  return admins;
+}

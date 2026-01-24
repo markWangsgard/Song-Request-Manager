@@ -94,7 +94,7 @@ async Task RefreshAccessTokenPeriodically()
     while (await periodicTimer.WaitForNextTickAsync())
     {
         await APIManager.AccessToken();
-        var refreshTasks = PlaylistManager.Users.Keys.Select(user => RefreshAccessToken(user));
+        var refreshTasks = PlaylistManager.Admins.Keys.Select(user => RefreshAccessToken(user));
 
         await Task.WhenAll(refreshTasks);
     }
@@ -102,7 +102,7 @@ async Task RefreshAccessTokenPeriodically()
 
 async Task RefreshAccessToken(string user)
 {
-    if (!PlaylistManager.Users.ContainsKey(user) || PlaylistManager.Users[user] == null)
+    if (!PlaylistManager.Admins.ContainsKey(user) || PlaylistManager.Admins[user] == null)
     {
         return;
     }
@@ -123,13 +123,13 @@ async Task RefreshAccessToken(string user)
     request.Content = new FormUrlEncodedContent(new[]
     {
         new KeyValuePair<string, string>("grant_type", "refresh_token"),
-        new KeyValuePair<string, string>("refresh_token", PlaylistManager.Users[user].userRefreshToken),
+        new KeyValuePair<string, string>("refresh_token", PlaylistManager.Admins[user].userRefreshToken),
         new KeyValuePair<string, string>("client_id", clientId)
     });
     var response = await client.SendAsync(request);
     var JsonObjectResponse = JsonSerializer.Deserialize<JsonObject>(await response.Content.ReadAsStringAsync());
     JsonObjectResponse.TryGetPropertyValue("access_token", out JsonNode jsonNode);
-    PlaylistManager.Users[user].userAccessToken = jsonNode.ToString();
+    PlaylistManager.Admins[user].userAccessToken = jsonNode.ToString();
 }
 async Task removeSongAsync(string user, string songId, bool broadcast = true)
 {
@@ -257,13 +257,13 @@ app.MapGet("/callback", async (HttpRequest request) =>
             accessTokenExpiresAt = expirationTime
         };
 
-        if (PlaylistManager.Users.ContainsKey(currentState.User))
+        if (PlaylistManager.Admins.ContainsKey(currentState.User))
         {
-            PlaylistManager.Users[currentState.User] = newUser;
+            PlaylistManager.Admins[currentState.User] = newUser;
         }
         else
         {
-            PlaylistManager.Users.Add(currentState.User, newUser);
+            PlaylistManager.Admins.Add(currentState.User, newUser);
         }
 
         RefreshAccessTokenPeriodically();
@@ -274,29 +274,37 @@ app.MapGet("/callback", async (HttpRequest request) =>
 
 app.MapGet("/logout/{user}", async (string user) =>
 {
-    PlaylistManager.Users[user] = null;
+    string userEmail = PlaylistManager.Admins.ContainsKey(user) && PlaylistManager.Admins[user] != null ? PlaylistManager.Admins[user].email : "unknown";
+    if (PlaylistManager.settings.masterAdminId != null
+        && PlaylistManager.Admins[PlaylistManager.settings.masterAdminId].email == userEmail
+        && PlaylistManager.Admins.Values.Count(a => a.email == userEmail) == 1)
+    {
+        PlaylistManager.settings.masterAdminId = null;
+    }
+    PlaylistManager.Admins[user] = null;
+
     var response = await APIManager.client.GetAsync("https://accounts.spotify.com/en/logout ");
 });
 
 app.MapGet("/me/{user}", async (string user = "") =>
 {
-    if (PlaylistManager.Users.ContainsKey(user))
+    if (PlaylistManager.Admins.ContainsKey(user))
     {
-        return Results.Content(JsonSerializer.Serialize(PlaylistManager.Users[user]), "application/json");
+        return Results.Content(JsonSerializer.Serialize(PlaylistManager.Admins[user]), "application/json");
     }
     return Results.Json(new { error = "User not found" });
 });
 
 app.MapGet("/me/{user}/playlists", async (string user) =>
 {
-    if (!PlaylistManager.Users.ContainsKey(user))
+    if (!PlaylistManager.Admins.ContainsKey(user))
     {
         return Results.Json(new { error = "User not found" });
     }
 
     await APIManager.AccessToken();
 
-    APIManager.client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PlaylistManager.Users[user].userAccessToken);
+    APIManager.client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PlaylistManager.Admins[user].userAccessToken);
 
     var response = await APIManager.client.GetAsync("https://api.spotify.com/v1/me/playlists");
     var JsonObjectResponse = JsonSerializer.Deserialize<JsonObject>(await response.Content.ReadAsStringAsync());
@@ -333,14 +341,14 @@ app.MapGet("/me/{user}/playlists", async (string user) =>
 
 app.MapGet("/me/{user}/queue", async (string user) =>
 {
-    if (!PlaylistManager.Users.ContainsKey(user))
+    if (!PlaylistManager.Admins.ContainsKey(user))
     {
         return Results.Json(new { error = "User not found" });
     }
 
     await APIManager.AccessToken();
 
-    APIManager.client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PlaylistManager.Users[user].userAccessToken);
+    APIManager.client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PlaylistManager.Admins[user].userAccessToken);
 
     var response = await APIManager.client.GetAsync("https://api.spotify.com/v1/me/player/queue");
     var JsonObjectResponse = JsonSerializer.Deserialize<JsonObject>(await response.Content.ReadAsStringAsync());
@@ -355,16 +363,82 @@ app.MapGet("/me/{user}/queue", async (string user) =>
     return Results.Json(queueSongs);
 });
 
+app.MapGet("/admin/queue", async () =>
+{
+    if (PlaylistManager.settings.masterAdminId == null)
+    {
+        return Results.Json(new { error = "No master admin set" });
+    }
+
+    await APIManager.AccessToken();
+
+    APIManager.client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PlaylistManager.Admins[PlaylistManager.settings.masterAdminId].userAccessToken);
+
+    var response = await APIManager.client.GetAsync("https://api.spotify.com/v1/me/player/queue");
+    var JsonObjectResponse = JsonSerializer.Deserialize<JsonObject>(await response.Content.ReadAsStringAsync());
+    JsonObjectResponse.TryGetPropertyValue("queue", out var queue);
+    List<SongData> queueSongs = new();
+    if (queue == null)
+    {
+        return Results.Json(new { error = "No songs in queue" });
+    }
+    foreach (var song in queue.AsArray())
+    {
+        SongData songData = APIManager.filterSongData(JsonSerializer.Deserialize<JsonElement>(song));
+        queueSongs.Add(songData);
+    }
+
+    return Results.Json(queueSongs);
+});
+
+app.MapGet("/admin/currently-playing", async () =>
+{
+    if (PlaylistManager.settings.masterAdminId == null)
+    {
+        return Results.Json(new { error = "No master admin set" });
+    }
+
+    await APIManager.AccessToken();
+
+    APIManager.client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PlaylistManager.Admins[PlaylistManager.settings.masterAdminId].userAccessToken);
+
+    var response = await APIManager.client.GetAsync("https://api.spotify.com/v1/me/player/currently-playing");
+    if ((int)response.StatusCode != 204)
+    {
+
+        var JsonObjectResponse = JsonSerializer.Deserialize<JsonObject>(await response.Content.ReadAsStringAsync());
+        JsonObjectResponse.TryGetPropertyValue("is_playing", out var isPlaying);
+        if (isPlaying.ToString() == "true")
+        {
+            JsonObjectResponse.TryGetPropertyValue("item", out var songData);
+            SongData currentSong = APIManager.filterSongData(JsonSerializer.Deserialize<JsonElement>(songData));
+            JsonObjectResponse.TryGetPropertyValue("progress_ms", out var progressJsonNode);
+            int duration = (int)songData["duration_ms"];
+            int progress = (int)progressJsonNode;
+            int timeRemaining = duration - (int)progressJsonNode;
+            return Results.Json(new { currentSong, progress, duration, timeRemaining });
+        }
+        else
+        {
+            return Results.Json(new { error = "User is not playing music" });
+        }
+    }
+    else
+    {
+        return Results.Json(new { error = "User is not playing music" });
+    }
+});
+
 app.MapGet("/me/{user}/currently-playing", async (string user) =>
 {
-    if (!PlaylistManager.Users.ContainsKey(user))
+    if (!PlaylistManager.Admins.ContainsKey(user))
     {
         return Results.Json(new { error = "User not found" });
     }
 
     await APIManager.AccessToken();
 
-    APIManager.client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PlaylistManager.Users[user].userAccessToken);
+    APIManager.client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", PlaylistManager.Admins[user].userAccessToken);
 
     var response = await APIManager.client.GetAsync("https://api.spotify.com/v1/me/player/currently-playing");
     if ((int)response.StatusCode != 204)
@@ -434,6 +508,65 @@ app.MapGet("/search/{query}", async (string query) =>
         }
     }
     return Results.Json(listOfTracks);
+});
+
+app.MapGet("/admin/get-admins/{deviceId}", (string deviceId) =>
+{
+    var masterAdminId = PlaylistManager.settings.masterAdminId;
+    var masterAdmin = masterAdminId != null && PlaylistManager.Admins.ContainsKey(masterAdminId) 
+        ? PlaylistManager.Admins[masterAdminId] 
+        : null;
+
+    var allAdmins = PlaylistManager.Admins
+        .Where(kvp => kvp.Value != null)
+        .ToList();
+
+    var uniqueAdmins = allAdmins
+        .DistinctBy(kvp => kvp.Value.email)
+        .Select(kvp => new { deviceId = kvp.Key, admin = kvp.Value })
+        .ToList();
+
+    // Find the current device admin
+    var currentDeviceAdmin = allAdmins.FirstOrDefault(kvp => kvp.Key == deviceId);
+
+    // Build result with preference: current device > master admin > others
+    var result = new List<dynamic>();
+    var addedEmails = new HashSet<string>();
+
+    // Add current device first (if exists and not null)
+    if (currentDeviceAdmin.Value != null)
+    {
+        result.Add(new
+        {
+            deviceId = currentDeviceAdmin.Key,
+            displayName = currentDeviceAdmin.Value.displayName + " (This Device)"
+        });
+        addedEmails.Add(currentDeviceAdmin.Value.email);
+    }
+
+    // Add master admin if different email or if same email but different deviceId
+    if (masterAdmin != null && !addedEmails.Contains(masterAdmin.email))
+    {
+        result.Add(new
+        {
+            deviceId = masterAdminId,
+            displayName = masterAdmin.displayName
+        });
+        addedEmails.Add(masterAdmin.email);
+    }
+
+    // Add remaining unique admins
+    foreach (var admin in uniqueAdmins.Where(a => !addedEmails.Contains(a.admin.email)))
+    {
+        result.Add(new
+        {
+            deviceId = admin.deviceId,
+            displayName = admin.admin.displayName
+        });
+        addedEmails.Add(admin.admin.email);
+    }
+
+    return Results.Json(result);
 });
 
 
@@ -530,7 +663,7 @@ app.MapGet("/requested-songs", async () =>
 
 app.MapPost("/store-settings/{user}", async (string user, Settings settings) =>
 {
-    if (PlaylistManager.Users.ContainsKey(user) && PlaylistManager.Users[user] != null)
+    if (PlaylistManager.Admins.ContainsKey(user) && PlaylistManager.Admins[user] != null)
     {
         // If incoming settings are identical to current settings, skip processing and broadcasting
         bool settingsEqual =
@@ -540,7 +673,8 @@ app.MapPost("/store-settings/{user}", async (string user, Settings settings) =>
             && PlaylistManager.settings.autoAdd == settings.autoAdd
             && PlaylistManager.settings.autoAddTime == settings.autoAddTime
             && PlaylistManager.settings.selectedDays.Count == settings.selectedDays.Count
-            && PlaylistManager.settings.selectedDays.All(kv => settings.selectedDays.ContainsKey(kv.Key) && settings.selectedDays[kv.Key] == kv.Value);
+            && PlaylistManager.settings.selectedDays.All(kv => settings.selectedDays.ContainsKey(kv.Key) && settings.selectedDays[kv.Key] == kv.Value)
+            && PlaylistManager.settings.masterAdminId == settings.masterAdminId;
 
         if (settingsEqual)
         {
@@ -549,6 +683,7 @@ app.MapPost("/store-settings/{user}", async (string user, Settings settings) =>
         bool limitDecreased = PlaylistManager.settings.numbOfAllowedRequests > settings.numbOfAllowedRequests;
         bool allowRepeatsChanged = PlaylistManager.settings.allowRepeats != settings.allowRepeats;
 
+        PlaylistManager.settings.masterAdminId = settings.masterAdminId;
         PlaylistManager.settings.currentPlaylist = settings.currentPlaylist;
         PlaylistManager.settings.numbOfAllowedRequests = settings.numbOfAllowedRequests;
         PlaylistManager.settings.allowRepeats = settings.allowRepeats;
@@ -567,7 +702,7 @@ app.MapPost("/store-settings/{user}", async (string user, Settings settings) =>
 
         if (limitDecreased || allowRepeatsChanged)
         {
-            foreach (var newUser in PlaylistManager.Users.Keys)
+            foreach (var newUser in PlaylistManager.Admins.Keys)
             {
                 if (PlaylistManager.RequestedSongs.ContainsKey(newUser))
                 {
@@ -609,7 +744,22 @@ app.MapPost("/store-settings/{user}", async (string user, Settings settings) =>
 });
 app.MapGet("/get-settings/", () =>
 {
-    return PlaylistManager.settings;
+    var settings = PlaylistManager.settings;
+    var masterAdminId = settings.masterAdminId;
+    var masterAdminDisplayName = masterAdminId != null && PlaylistManager.Admins.ContainsKey(masterAdminId) && PlaylistManager.Admins[masterAdminId] != null
+        ? PlaylistManager.Admins[masterAdminId].displayName
+        : null;
+    
+    return Results.Json(new
+    {
+        settings.currentPlaylist,
+        masterAdmin = masterAdminId != null ? new { deviceId = masterAdminId, displayName = masterAdminDisplayName } : null,
+        settings.numbOfAllowedRequests,
+        settings.allowRepeats,
+        settings.autoAdd,
+        settings.autoAddTime,
+        settings.selectedDays
+    });
 });
 
 // Debug endpoint: view debounced broadcast statistics

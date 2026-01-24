@@ -5,6 +5,7 @@ export const myApiUrl = "https://song-request-manager.onrender.com";
 
 // settings
 export let currentUser = null;
+export let masterAdmin = null;
 export let currentPlaylist = null;
 export let numbOfAllowedRequests = 3;
 export let allowRepeats = true;
@@ -29,6 +30,7 @@ export const loadSettingsFromApi = async () => {
 
   // update local settings
   currentPlaylist = settings.currentPlaylist;
+  masterAdmin = settings.masterAdmin;
   numbOfAllowedRequests = settings.numbOfAllowedRequests;
   allowRepeats = settings.allowRepeats;
   autoAdd = settings.autoAdd;
@@ -52,6 +54,10 @@ export const setUser = (user) => {
   currentUser = user;
   scheduleSetSettings();
 };
+export const setMasterAdmin = (admin) => {
+  masterAdmin = admin;
+  scheduleSetSettings();
+}
 export const setUserLocal = (user) => {
   currentUser = user;
 };

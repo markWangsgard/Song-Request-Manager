@@ -1,10 +1,21 @@
-import { currentUser, loadSettingsFromApi } from "./constants.js";
+import { currentUser, loadSettingsFromApi, masterAdmin } from "./constants.js";
 import { GetLineDanceSongs } from "./domain.js";
 import {
   getCurrentlyPlayingSong,
+  getMasterCurrentlyPlayingSong,
   getQueue,
+  getMasterQueue,
   waitForApiAndReload,
 } from "./service.js";
+
+const requestSongsPageButtonElement = document.getElementById("request-songs-page-button");
+requestSongsPageButtonElement.addEventListener("click", () => {
+  window.location = "./";
+});
+const queuePageButtonElement = document.getElementById("queue-page-button");
+queuePageButtonElement.addEventListener("click", () => {
+  window.location = "./queue.html";
+});
 
 const loader = document.getElementById("loader");
 const currentlyPlayingSectionElement = document.getElementById(
@@ -16,21 +27,21 @@ const errorMessageElement = document.getElementById("errorMessage");
 await loadSettingsFromApi();
 
 const updateQueue = async () => {
-  if (currentUser === null || currentUser.error) {
-    errorMessageElement.classList.remove("d-none");
-    
-    const linkElement = document.createElement("a");
-    linkElement.classList.add("text-decoration-none");
-    linkElement.textContent = "Please Login to Show Queue";
-    linkElement.href = `./admin-settings.html`;
+  // if (currentUser === null || currentUser.error) {
+  // errorMessageElement.classList.remove("d-none");
+  // errorMessageElement.textContent = "Please Login to Show Queue";
+  // return;
+  // }
 
-    errorMessageElement.replaceChildren();
-    errorMessageElement.appendChild(linkElement);
+  if (!masterAdmin || masterAdmin.error) {
+    errorMessageElement.classList.remove("d-none");
+    errorMessageElement.textContent =
+      "No admin account selected. Please contact a member of the Swing Presidency.";
     return;
   }
 
-  const currentlyPlaying = await getCurrentlyPlayingSong();
-  const queue = await getQueue();
+  const currentlyPlaying = await getMasterCurrentlyPlayingSong();
+  const queue = await getMasterQueue();
 
   if (currentlyPlaying.error) {
     loader.remove();
@@ -59,15 +70,23 @@ const updateQueue = async () => {
   );
 
   //   currentlyPlayingSongInfoElement.appendChild(progressBarDivElement);
-
   currentlyPlayingElement.appendChild(currentlyPlayingSongInfoElement);
 
   const upNextElement = document.getElementById("queue");
   upNextElement.replaceChildren();
 
-  queue.forEach(async (song) => {
-    upNextElement.appendChild(await createSongElement(song));
-  });
+  if (queue.error) {
+    loader.remove();
+    const errorElement = document.createElement("p");
+    errorElement.textContent = "No Songs in Queue";
+    errorElement.classList.add("text-center", "fs-4", "mt-3");
+    upNextElement.appendChild(errorElement);
+    return;
+  } else {
+    queue.forEach(async (song) => {
+      upNextElement.appendChild(await createSongElement(song));
+    });
+  }
   const timeRemaining = currentlyPlaying.timeRemaining - 300;
 
   setTimeout(updateQueue, timeRemaining > 0 ? timeRemaining : 5000);
@@ -160,7 +179,7 @@ async function createSongElement(
 
   textContainer.appendChild(titleElement);
   textContainer.appendChild(artistElement);
-  if (currentUser.email === "mwangsgard25@gmail.com") {
+  if (currentUser !== null && currentUser.email === "mwangsgard25@gmail.com") {
     textContainer.appendChild(idElement);
   }
   infoContainerElement.appendChild(imgElement);

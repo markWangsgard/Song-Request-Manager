@@ -23,6 +23,8 @@ import {
   isAdmin,
   autoAddQuantity,
   setAutoAddQuantity,
+  masterAdmin,
+  setMasterAdmin,
 } from "./constants.js";
 import { songsAddedToPlaylist, userID } from "./domain.js";
 import {
@@ -32,10 +34,12 @@ import {
   logout,
   clearRequestsAPI,
   waitForApiAndReload,
+  getAdmins,
 } from "./service.js";
 
 const bodyElement = document.getElementById("body");
 const loginButton = document.getElementById("signIn");
+const masterAdminSelectElement = document.getElementById("selectMasterAdmin");
 const selectPlaylistButton = document.getElementById("selectPlaylist");
 const userNameElement = document.getElementById("userName");
 const requestLimitInputElement = document.getElementById("requestLimit");
@@ -171,6 +175,14 @@ const addAllEventListeners = async () => {
     popupElement.classList.add("d-none");
     bodyElement.classList.remove("no-scroll");
   });
+
+  masterAdminSelectElement.addEventListener("input", (e) => {
+    const selectedDeviceId = masterAdminSelectElement.value;
+    const selectedAdmin = window.adminsArray?.find(a => a.deviceId === selectedDeviceId);
+    if (selectedAdmin) {
+      setMasterAdmin(selectedAdmin);
+    }
+  });
 };
 
 const updateUser = () => {
@@ -222,6 +234,9 @@ const updateAutoAdd = () => {
 
 const loadSettings = async() => {
   await loadSettingsFromApi();
+  
+  masterAdminSelectElement.value = masterAdmin?.deviceId ?? "";
+
   requestLimitInputElement.value = numbOfAllowedRequests;
 
   allowRepeatsSwitchElement.checked = allowRepeats;
@@ -238,7 +253,6 @@ const loadSettings = async() => {
   saturdayCheckboxElement.checked = selectedDays.saturday;
   sundayCheckboxElement.checked = selectedDays.sunday;
 
-  console.log("autoAddTime:", autoAddTime);
   timePickerElement.value = "22:15";
   updateUser();
   updatePlaylist();
@@ -326,10 +340,28 @@ try {
   throw e;
 }
 
+// console.log("Current User:", currentUser);
 if (!currentUser || currentUser.error) {
   await logout();
 }
+
+const admins = await getAdmins();
+window.adminsArray = admins;
+
+admins.forEach((admin) => {
+  const optionElement = document.createElement("option");
+  optionElement.value = admin.deviceId;
+  optionElement.textContent = admin.displayName;
+  masterAdminSelectElement.appendChild(optionElement);
+});
+
 await loadSettings();
+
+if (admins.length === 1 )
+  {
+    masterAdminSelectElement.value = admins[0].deviceId;
+    setMasterAdmin(admins[0]);
+  }
 const loaderElement = document.getElementById("loader");
 if (loaderElement) loaderElement.classList.add("d-none");
 const loginSectionElement = document.getElementById("loginSection");

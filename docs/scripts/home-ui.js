@@ -1,18 +1,19 @@
-import {
-  getRequestedSongs,
-  getUserRequests,
-  searchSongs,
-  waitForApiAndReload,
-} from "./service.js";
-import { requestSong, userID } from "./domain.js";
+import { waitForApiAndReload } from "./service.js";
 import { homeDisplaySongs as displaySongs } from "./displayUpdates.js";
 import { loadSettingsFromApi } from "./constants.js";
+
+const requestSongsPageButtonElement = document.getElementById("request-songs-page-button");
+requestSongsPageButtonElement.addEventListener("click", () => {
+  window.location = "./";
+});
+const queuePageButtonElement = document.getElementById("queue-page-button");
+queuePageButtonElement.addEventListener("click", () => {
+  window.location = "./queue.html";
+});
 
 const searchBarElement = document.getElementById("search");
 const resultsContainer = document.getElementById("results");
 let typingTimer;
-
-const updateRequestedSongs = new Event("updateRequestedSongs");
 
 searchBarElement.addEventListener("input", async (event) => {
   clearTimeout(typingTimer);

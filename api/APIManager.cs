@@ -206,9 +206,9 @@ public static class APIManager
         }
 
         string token;
-        if (PlaylistManager.Users.ContainsKey(user))
+        if (PlaylistManager.Admins.ContainsKey(user))
         {
-            token = PlaylistManager.Users[user].userAccessToken;
+            token = PlaylistManager.Admins[PlaylistManager.settings.masterAdminId].userAccessToken;
         }
         else
         {

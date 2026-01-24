@@ -7,7 +7,7 @@ using System.Threading;
 
 public static class PlaylistManager
 {
-    public static Dictionary<string, Admin> Users = new();
+    public static Dictionary<string, Admin> Admins = new();
     public static Dictionary<string, List<SongData>> RequestedSongs { get; set; } = new Dictionary<string, List<SongData>>();
     // public static Dictionary<string, Settings> UserSettings = new();
     public static Settings settings = new Settings();
@@ -20,6 +20,14 @@ public static class PlaylistManager
     static PlaylistManager()
     {
         try { autoAddSemaphore = new SemaphoreSlim(settings.autoAdd ? 1 : 0, 1); } catch { autoAddSemaphore = new SemaphoreSlim(0, 1); }
+    }
+
+    public static void SetMasterAdmin(string deviceId)
+    {
+        if (Admins.ContainsKey(deviceId))
+        {
+            settings.masterAdminId = deviceId;
+        }
     }
 
     public static void CancelAndResetAutoAdd()
@@ -132,18 +140,18 @@ public static class PlaylistManager
                     var topSongs = AllSongs.Take(settings.autoAddQuantity).ToList();
                     if (topSongs.Any() && settings.currentPlaylist != null)
                     {
-                        string admin = Users.FirstOrDefault(u => u.Value != null).Key;
+                        string admin = Admins.FirstOrDefault(u => u.Value != null).Key;
                         if (string.IsNullOrEmpty(admin))
                         {
                             Console.WriteLine("No admin user available to perform auto-add; skipping.");
                         }
                         else
                         {
-                        for (int i = 0; i < topSongs.Count; i++)
-                        {
-                            // Add topSongs to current playlist
-                                    await APIManager.addSongToPlaylistAsync(settings.currentPlaylist.Id, admin, topSongs[i].id);
-                        }
+                            for (int i = 0; i < topSongs.Count; i++)
+                            {
+                                // Add topSongs to current playlist
+                                await APIManager.addSongToPlaylistAsync(settings.currentPlaylist.Id, admin, topSongs[i].id);
+                            }
                             Console.WriteLine("added songs automatically");
                         }
 
