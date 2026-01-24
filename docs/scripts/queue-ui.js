@@ -8,6 +8,15 @@ import {
   waitForApiAndReload,
 } from "./service.js";
 
+const requestSongsPageButtonElement = document.getElementById("request-songs-page-button");
+requestSongsPageButtonElement.addEventListener("click", () => {
+  window.location = "./";
+});
+const queuePageButtonElement = document.getElementById("queue-page-button");
+queuePageButtonElement.addEventListener("click", () => {
+  window.location = "./queue.html";
+});
+
 const loader = document.getElementById("loader");
 const currentlyPlayingSectionElement = document.getElementById(
   "currentlyPlayingSection",
@@ -27,7 +36,7 @@ const updateQueue = async () => {
   if (!masterAdmin || masterAdmin.error) {
     errorMessageElement.classList.remove("d-none");
     errorMessageElement.textContent =
-      "No Master Admin Set. Please contact the application administrator.";
+      "No admin account selected. Please contact a member of the Swing Presidency.";
     return;
   }
 

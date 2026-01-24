@@ -28,12 +28,23 @@ input[type="number"] {
   -moz-appearance: textfield;
 }
 
+@media (max-width: 576px) {
+  .bg-footer-responsive
+  {
+    background-color: $secondary;
+  }
+}
+
 @media (min-width: 576px) {
   .responsive-width {
     width: 75%; /* 75% width on small screens and above */
   }
   .h-sm-25 {
     height: 25% !important;
+  }
+  .bg-footer-responsive
+  {
+    background-color: $secondary;
   }
 }
 
@@ -43,6 +54,10 @@ input[type="number"] {
   }
   .h-md-25 {
     height: 25% !important;
+  }
+  .bg-footer-responsive
+  {
+    background-color: $body-bg;
   }
 }
 
@@ -56,6 +71,10 @@ input[type="number"] {
   #queue {
     max-height: 50vh;
     overflow-y: auto;
+  }
+  .bg-footer-responsive
+  {
+    background-color: $body-bg;
   }
 }
 
