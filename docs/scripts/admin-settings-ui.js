@@ -341,9 +341,9 @@ try {
 }
 
 // console.log("Current User:", currentUser);
-// if (!currentUser || currentUser.error) {
-  // await logout();
-// }
+if (!currentUser || currentUser.error) {
+  await logout();
+}
 
 const admins = await getAdmins();
 window.adminsArray = admins;
