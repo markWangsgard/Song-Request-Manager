@@ -116,6 +116,7 @@ export const getSettings = async () => {
   const settings = await response.json();
   const me = await getMe();
   const updatedSettings = { ...settings, isAdmin: me !== null };
+  console.log("Fetched settings:", updatedSettings);
   // return both settings and the current user so callers can decide whether to persist
   return { settings: updatedSettings, me };
 };

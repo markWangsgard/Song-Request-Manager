@@ -24,7 +24,9 @@ const updateQueue = async () => {
     // return;
   // }
 
-  if (masterAdmin === null || masterAdmin.error) {
+  console.log("Master Admin:", masterAdmin);
+
+  if (!masterAdmin || masterAdmin.error) {
     errorMessageElement.classList.remove("d-none");
     errorMessageElement.textContent =
       "No Master Admin Set. Please contact the application administrator.";

@@ -654,13 +654,13 @@ app.MapPost("/store-settings/{user}", async (string user, Settings settings) =>
         // If incoming settings are identical to current settings, skip processing and broadcasting
         bool settingsEqual =
             PlaylistManager.settings.currentPlaylist == settings.currentPlaylist
-            && PlaylistManager.settings.masterAdminId == settings.masterAdminId
             && PlaylistManager.settings.numbOfAllowedRequests == settings.numbOfAllowedRequests
             && PlaylistManager.settings.allowRepeats == settings.allowRepeats
             && PlaylistManager.settings.autoAdd == settings.autoAdd
             && PlaylistManager.settings.autoAddTime == settings.autoAddTime
             && PlaylistManager.settings.selectedDays.Count == settings.selectedDays.Count
-            && PlaylistManager.settings.selectedDays.All(kv => settings.selectedDays.ContainsKey(kv.Key) && settings.selectedDays[kv.Key] == kv.Value);
+            && PlaylistManager.settings.selectedDays.All(kv => settings.selectedDays.ContainsKey(kv.Key) && settings.selectedDays[kv.Key] == kv.Value)
+            && PlaylistManager.settings.masterAdminId == settings.masterAdminId;
 
         if (settingsEqual)
         {
@@ -669,11 +669,13 @@ app.MapPost("/store-settings/{user}", async (string user, Settings settings) =>
         bool limitDecreased = PlaylistManager.settings.numbOfAllowedRequests > settings.numbOfAllowedRequests;
         bool allowRepeatsChanged = PlaylistManager.settings.allowRepeats != settings.allowRepeats;
 
+        Console.WriteLine($"First Master Admin: {PlaylistManager.settings.masterAdminId}");
+        Console.WriteLine($"New Master Admin: {settings.masterAdminId}");
+        PlaylistManager.settings.masterAdminId = settings.masterAdminId;
         PlaylistManager.settings.currentPlaylist = settings.currentPlaylist;
         PlaylistManager.settings.numbOfAllowedRequests = settings.numbOfAllowedRequests;
         PlaylistManager.settings.allowRepeats = settings.allowRepeats;
         PlaylistManager.settings.autoAdd = settings.autoAdd;
-        PlaylistManager.settings.masterAdminId = settings.masterAdminId;
 
         // Notify the PlaylistManager signal about the change to autoAdd so the background
         // worker can block/unblock immediately without busy-waiting.
@@ -730,7 +732,23 @@ app.MapPost("/store-settings/{user}", async (string user, Settings settings) =>
 });
 app.MapGet("/get-settings/", () =>
 {
-    return PlaylistManager.settings;
+    var settings = PlaylistManager.settings;
+    var masterAdminId = settings.masterAdminId;
+    var masterAdminDisplayName = masterAdminId != null && PlaylistManager.Admins.ContainsKey(masterAdminId) && PlaylistManager.Admins[masterAdminId] != null
+        ? PlaylistManager.Admins[masterAdminId].displayName
+        : null;
+    
+    Console.WriteLine($"Getting settings. Master Admin ID: {masterAdminId}, Display Name: {masterAdminDisplayName}");
+    return Results.Json(new
+    {
+        settings.currentPlaylist,
+        masterAdmin = masterAdminId != null ? new { deviceId = masterAdminId, displayName = masterAdminDisplayName } : null,
+        settings.numbOfAllowedRequests,
+        settings.allowRepeats,
+        settings.autoAdd,
+        settings.autoAddTime,
+        settings.selectedDays
+    });
 });
 
 // Debug endpoint: view debounced broadcast statistics
