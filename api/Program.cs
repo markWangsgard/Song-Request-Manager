@@ -496,29 +496,63 @@ app.MapGet("/search/{query}", async (string query) =>
     return Results.Json(listOfTracks);
 });
 
-app.MapGet("/admin/get-admins/{user}", (string user) =>
+app.MapGet("/admin/get-admins/{user}", (string deviceId) =>
 {
     var masterAdminId = PlaylistManager.settings.masterAdminId;
-    List<Admin> wantedAdmins = new() {PlaylistManager.Admins[masterAdminId], PlaylistManager.Admins[user]};
-    var filteredAdmins = wantedAdmins.Where(a => a != null).Select(a => new
+    var masterAdmin = masterAdminId != null && PlaylistManager.Admins.ContainsKey(masterAdminId) 
+        ? PlaylistManager.Admins[masterAdminId] 
+        : null;
+
+    var allAdmins = PlaylistManager.Admins
+        .Where(kvp => kvp.Value != null)
+        .ToList();
+
+    var uniqueAdmins = allAdmins
+        .DistinctBy(kvp => kvp.Value.email)
+        .Select(kvp => new { deviceId = kvp.Key, admin = kvp.Value })
+        .ToList();
+
+    // Find the current device admin
+    var currentDeviceAdmin = allAdmins.FirstOrDefault(kvp => kvp.Key == deviceId);
+
+    // Build result with preference: current device > master admin > others
+    var result = new List<dynamic>();
+    var addedEmails = new HashSet<string>();
+
+    // Add current device first (if exists and not null)
+    if (currentDeviceAdmin.Value != null)
     {
-        // a?.accessTokenExpiresAt,
-        displayName = a?.displayName + (PlaylistManager.Admins.FirstOrDefault(kvp => kvp.Value == a).Key == user ? " (This Device)" : ""),
-        deviceId = PlaylistManager.Admins.FirstOrDefault(kvp => kvp.Value == a).Key,
-        }).ToList();
-    var adminList = PlaylistManager.Admins.Where(kvp => kvp.Value != null )
-                                          .DistinctBy(kvp => kvp.Value.email)
-                                          .Select(kvp => new
-                                          {
-                                              deviceId = kvp.Key,
-                                            //   kvp.Value?.accessTokenExpiresAt,
-                                              displayName = kvp.Value?.displayName + (kvp.Key == user ? " (This Device)" : ""),
-                                            //   kvp.Value?.email,
-                                            //   kvp.Value?.userAccessToken,
-                                            //   kvp.Value?.userRefreshToken
-                                          }).ToList();
-    return Results.Json(                                          .OrderByDescending(kvp => kvp.Key == user && kvp.Key != masterAdminId)
-.Concat(adminList).ToList());
+        result.Add(new
+        {
+            deviceId = currentDeviceAdmin.Key,
+            displayName = currentDeviceAdmin.Value.displayName + " (This Device)"
+        });
+        addedEmails.Add(currentDeviceAdmin.Value.email);
+    }
+
+    // Add master admin if different email or if same email but different deviceId
+    if (masterAdmin != null && !addedEmails.Contains(masterAdmin.email))
+    {
+        result.Add(new
+        {
+            deviceId = masterAdminId,
+            displayName = masterAdmin.displayName
+        });
+        addedEmails.Add(masterAdmin.email);
+    }
+
+    // Add remaining unique admins
+    foreach (var admin in uniqueAdmins.Where(a => !addedEmails.Contains(a.admin.email)))
+    {
+        result.Add(new
+        {
+            deviceId = admin.deviceId,
+            displayName = admin.admin.displayName
+        });
+        addedEmails.Add(admin.admin.email);
+    }
+
+    return Results.Json(result);
 });
 
 
