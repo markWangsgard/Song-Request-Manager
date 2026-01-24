@@ -368,6 +368,10 @@ app.MapGet("/admin/queue", async () =>
     var JsonObjectResponse = JsonSerializer.Deserialize<JsonObject>(await response.Content.ReadAsStringAsync());
     JsonObjectResponse.TryGetPropertyValue("queue", out var queue);
     List<SongData> queueSongs = new();
+    if (queue == null)
+    {
+        return Results.Json(new { error = "No songs in queue" });
+    }
     foreach (var song in queue.AsArray())
     {
         SongData songData = APIManager.filterSongData(JsonSerializer.Deserialize<JsonElement>(song));
