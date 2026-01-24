@@ -10,7 +10,7 @@ import {
 
 const loader = document.getElementById("loader");
 const currentlyPlayingSectionElement = document.getElementById(
-  "currentlyPlayingSection"
+  "currentlyPlayingSection",
 );
 const upNextSectionElement = document.getElementById("queueSection");
 const errorMessageElement = document.getElementById("errorMessage");
@@ -19,9 +19,9 @@ await loadSettingsFromApi();
 
 const updateQueue = async () => {
   // if (currentUser === null || currentUser.error) {
-    // errorMessageElement.classList.remove("d-none");
-    // errorMessageElement.textContent = "Please Login to Show Queue";
-    // return;
+  // errorMessageElement.classList.remove("d-none");
+  // errorMessageElement.textContent = "Please Login to Show Queue";
+  // return;
   // }
 
   if (!masterAdmin || masterAdmin.error) {
@@ -57,26 +57,32 @@ const updateQueue = async () => {
     currentSong,
     true,
     currentlyPlaying.progress,
-    currentlyPlaying.duration
+    currentlyPlaying.duration,
   );
 
   //   currentlyPlayingSongInfoElement.appendChild(progressBarDivElement);
-
   currentlyPlayingElement.appendChild(currentlyPlayingSongInfoElement);
 
   const upNextElement = document.getElementById("queue");
   upNextElement.replaceChildren();
 
-  queue.forEach(async (song) => {
-    upNextElement.appendChild(await createSongElement(song));
-  });
+  if (queue.error) {
+    loader.remove();
+    const errorElement = document.createElement("p");
+    errorElement.textContent = "No Songs in Queue";
+    errorElement.classList.add("text-center", "fs-4", "mt-3");
+    upNextElement.appendChild(errorElement);
+    return;
+  } else {
+    queue.forEach(async (song) => {
+      upNextElement.appendChild(await createSongElement(song));
+    });
+  }
   const timeRemaining = currentlyPlaying.timeRemaining - 300;
 
   setTimeout(updateQueue, timeRemaining > 0 ? timeRemaining : 5000);
   // setTimeout(updateQueue, 2000);
 };
-
-
 
 await updateQueue();
 loader.remove();
@@ -85,7 +91,7 @@ async function createSongElement(
   song,
   currentlyPlaying = false,
   currentTime = 0,
-  duration = 0
+  duration = 0,
 ) {
   const resultElement = document.createElement("figure");
   resultElement.classList.add("ms-4");
@@ -93,17 +99,17 @@ async function createSongElement(
   resultElement.classList.add("me-4");
   resultElement.classList.add("rounded");
   //   resultElement.classList.add("w-100");
-  
+
   const lineDanceSongs = await GetLineDanceSongs();
   resultElement.classList.add("border");
   resultElement.classList.add("border-primary");
   if (lineDanceSongs.includes(song.id)) {
     resultElement.classList.add("bg-secondary");
-    resultElement.classList.add("border-4");    
+    resultElement.classList.add("border-4");
   } else {
     resultElement.classList.add("bg-body");
   }
-  
+
   const infoContainerElement = document.createElement("div");
   infoContainerElement.classList.add("d-flex");
   infoContainerElement.classList.add("justify-content-sm-center");
@@ -132,8 +138,7 @@ async function createSongElement(
   idElement.textContent = `ID: ${song.id}`;
 
   const progressBarDivElement = document.createElement("div");
-  progressBarDivElement.classList =
-    "mt-3 d-flex align-items-center ";
+  progressBarDivElement.classList = "mt-3 d-flex align-items-center ";
   if (currentlyPlaying) {
     const currentTimeElement = document.createElement("span");
     currentTimeElement.classList = "me-3";
@@ -165,8 +170,7 @@ async function createSongElement(
 
   textContainer.appendChild(titleElement);
   textContainer.appendChild(artistElement);
-  if (currentUser !== null && currentUser.email === "mwangsgard25@gmail.com")
-  {
+  if (currentUser !== null && currentUser.email === "mwangsgard25@gmail.com") {
     textContainer.appendChild(idElement);
   }
   infoContainerElement.appendChild(imgElement);
