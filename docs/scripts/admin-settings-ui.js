@@ -176,9 +176,12 @@ const addAllEventListeners = async () => {
     bodyElement.classList.remove("no-scroll");
   });
 
-  masterAdminSelectElement.addEventListener("input", () => {
-    const selectedAdmin = masterAdminSelectElement.value;
-    setMasterAdmin(selectedAdmin);
+  masterAdminSelectElement.addEventListener("input", (e) => {
+    const selectedDeviceId = masterAdminSelectElement.value;
+    const selectedAdmin = window.adminsArray?.find(a => a.deviceId === selectedDeviceId);
+    if (selectedAdmin) {
+      setMasterAdmin(selectedAdmin);
+    }
   });
 };
 
@@ -232,7 +235,7 @@ const updateAutoAdd = () => {
 const loadSettings = async() => {
   await loadSettingsFromApi();
   
-  masterAdminSelectElement.value = masterAdmin ? masterAdmin : "";
+  masterAdminSelectElement.value = masterAdmin?.deviceId ?? "";
 
   requestLimitInputElement.value = numbOfAllowedRequests;
 
@@ -250,7 +253,6 @@ const loadSettings = async() => {
   saturdayCheckboxElement.checked = selectedDays.saturday;
   sundayCheckboxElement.checked = selectedDays.sunday;
 
-  console.log("autoAddTime:", autoAddTime);
   timePickerElement.value = "22:15";
   updateUser();
   updatePlaylist();
@@ -338,16 +340,17 @@ try {
   throw e;
 }
 
-if (!currentUser || currentUser.error) {
-  await logout();
-}
+// console.log("Current User:", currentUser);
+// if (!currentUser || currentUser.error) {
+  // await logout();
+// }
 
 const admins = await getAdmins();
-console.log(admins);
+window.adminsArray = admins;
 
 admins.forEach((admin) => {
   const optionElement = document.createElement("option");
-  optionElement.value = admin;
+  optionElement.value = admin.deviceId;
   optionElement.textContent = admin.displayName;
   masterAdminSelectElement.appendChild(optionElement);
 });
@@ -356,9 +359,8 @@ await loadSettings();
 
 if (admins.length === 1 )
   {
-    masterAdminSelectElement.value = admins[0];
+    masterAdminSelectElement.value = admins[0].deviceId;
     setMasterAdmin(admins[0]);
-    // set master admin here
   }
 const loaderElement = document.getElementById("loader");
 if (loaderElement) loaderElement.classList.add("d-none");

@@ -24,8 +24,6 @@ const updateQueue = async () => {
     // return;
   // }
 
-  console.log("Master Admin:", masterAdmin);
-
   if (!masterAdmin || masterAdmin.error) {
     errorMessageElement.classList.remove("d-none");
     errorMessageElement.textContent =
