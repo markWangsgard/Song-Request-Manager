@@ -498,8 +498,15 @@ app.MapGet("/search/{query}", async (string query) =>
 
 app.MapGet("/admin/get-admins/{user}", (string user) =>
 {
-    var adminList = PlaylistManager.Admins.Where(kvp => kvp.Value != null)
-                                          .OrderByDescending(kvp => kvp.Key == user)
+    var masterAdminId = PlaylistManager.settings.masterAdminId;
+    List<Admin> wantedAdmins = new() {PlaylistManager.Admins[masterAdminId], PlaylistManager.Admins[user]};
+    var filteredAdmins = wantedAdmins.Where(a => a != null).Select(a => new
+    {
+        // a?.accessTokenExpiresAt,
+        displayName = a?.displayName + (PlaylistManager.Admins.FirstOrDefault(kvp => kvp.Value == a).Key == user ? " (This Device)" : ""),
+        deviceId = PlaylistManager.Admins.FirstOrDefault(kvp => kvp.Value == a).Key,
+        }).ToList();
+    var adminList = PlaylistManager.Admins.Where(kvp => kvp.Value != null )
                                           .DistinctBy(kvp => kvp.Value.email)
                                           .Select(kvp => new
                                           {
@@ -510,7 +517,8 @@ app.MapGet("/admin/get-admins/{user}", (string user) =>
                                             //   kvp.Value?.userAccessToken,
                                             //   kvp.Value?.userRefreshToken
                                           }).ToList();
-    return Results.Json(adminList);
+    return Results.Json(                                          .OrderByDescending(kvp => kvp.Key == user && kvp.Key != masterAdminId)
+.Concat(adminList).ToList());
 });
 
 
