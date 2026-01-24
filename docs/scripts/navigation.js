@@ -23,7 +23,7 @@ buttonsContainer.classList = "mb-4 d-flex flex-column flex-md-row justify-conten
 
 // Create buttons
 const buttons = [
-  { id: "goHome", text: "Home" },
+  { id: "goHome", text: "Request Songs" },
   { id: "goQueue", text: "Queue" },
   { id: "goAdmin", text: "Song Manager" },
   { id: "goAdminSettings", text: "Admin Settings" },
