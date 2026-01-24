@@ -496,7 +496,7 @@ app.MapGet("/search/{query}", async (string query) =>
     return Results.Json(listOfTracks);
 });
 
-app.MapGet("/admin/get-admins/{user}", (string deviceId) =>
+app.MapGet("/admin/get-admins/{deviceId}", (string deviceId) =>
 {
     var masterAdminId = PlaylistManager.settings.masterAdminId;
     var masterAdmin = masterAdminId != null && PlaylistManager.Admins.ContainsKey(masterAdminId) 
