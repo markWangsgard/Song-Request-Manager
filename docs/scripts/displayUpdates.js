@@ -28,7 +28,7 @@ export const homeDisplaySongs = async (searching, query = "") => {
 
   if (results.length === 0) {
     const noResultsElement = document.createElement("h4");
-    noResultsElement.classList = "mt-4 ms-3 me-3 mb-3";
+    noResultsElement.classList.add("mt-4", "ms-3", "me-3", "mb-3");
     noResultsElement.textContent = searching
       ? "No results found."
       : "No songs have been requested yet. Be the first to request a song!";
@@ -124,7 +124,7 @@ export const adminDisplaySongs = async (searching, query = "") => {
 
   if (results.length === 0) {
     const noResultsElement = document.createElement("h4");
-    noResultsElement.classList.add("mt-4");
+    noResultsElement.classList.add("mt-4", "ms-3", "me-3", "mb-3");
     noResultsElement.textContent = searching
       ? "No results found."
       : "No songs have been requested yet. Be the first to request a song!";
