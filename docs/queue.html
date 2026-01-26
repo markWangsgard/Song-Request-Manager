@@ -33,7 +33,7 @@
         id="logo"
       />
     </header>
-    <main class="flex-grow-1 d-flex overflow-hidden flex-column">
+    <main class="flex-grow-1 d-flex flex-column">
       <cowboy-loader
         id="loader"
         size="200"
@@ -49,6 +49,7 @@
       <div class="flex-grow-1 overflow-hidden d-flex">
         <div class="container-fluid flex-grow-1">
           <div
+            id="queueContainer"
             class="row flex-grow-1 overflow-hidden h-100 flex-column flex-lg-row"
           >
             <div
@@ -81,12 +82,19 @@
     </main>
     <footer class="text-center text-wrap bg-footer-responsive">
       <nav class="d-flex d-md-none justify-content-evenly mt-4">
-        <button class="btn btn-outline-primary rounded-5 d-flex justify-content-center align-items-center ps-4 pe-4" style="width: 45%;" id="request-songs-page-button">
-
+        <button
+          class="btn btn-outline-primary rounded-5 d-flex justify-content-center align-items-center ps-4 pe-4"
+          style="width: 45%"
+          id="request-songs-page-button"
+        >
           <h5 class="m-0">Request Songs</h5>
           <!-- <div style="height: 10px" class="bg-primary rounded"></div> -->
         </button>
-        <button class="btn btn-primary rounded-5 d-flex justify-content-center align-items-center ps-4 pe-4" style="width: 45%;" id="queue-page-button">
+        <button
+          class="btn btn-primary rounded-5 d-flex justify-content-center align-items-center ps-4 pe-4"
+          style="width: 45%"
+          id="queue-page-button"
+        >
           <h5 class="m-0">Queue</h5>
           <!-- <div style="height: 10px" class="bg-primary rounded"></div> -->
         </button>

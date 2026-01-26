@@ -18,6 +18,13 @@ $input-placeholder-color: white;
   width: 100%; /* Default for mobile */
 }
 
+body {
+  max-height: 100vh;
+}
+main {
+  overflow-y: auto !important;
+}
+
 // removes the spin buttons from number inputs
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
@@ -29,8 +36,7 @@ input[type="number"] {
 }
 
 @media (max-width: 576px) {
-  .bg-footer-responsive
-  {
+  .bg-footer-responsive {
     background-color: $secondary;
   }
 }
@@ -42,8 +48,7 @@ input[type="number"] {
   .h-sm-25 {
     height: 25% !important;
   }
-  .bg-footer-responsive
-  {
+  .bg-footer-responsive {
     background-color: $secondary;
   }
 }
@@ -55,8 +60,11 @@ input[type="number"] {
   .h-md-25 {
     height: 25% !important;
   }
-  .bg-footer-responsive
-  {
+  #queue {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+  .bg-footer-responsive {
     background-color: $body-bg;
   }
 }
@@ -68,12 +76,8 @@ input[type="number"] {
   .h-lg-25 {
     height: 25% !important;
   }
-  #queue {
-    max-height: 50vh;
-    overflow-y: auto;
-  }
-  .bg-footer-responsive
-  {
+
+  .bg-footer-responsive {
     background-color: $body-bg;
   }
 }
@@ -102,7 +106,7 @@ input[type="number"] {
   inset: 0;
   // background: $secondary;
   border: solid;
-  border-width: .1em;
+  border-width: 0.1em;
   border-radius: 50px;
   border-color: $primary;
   transition: all 0.4s cubic-bezier(0.23, 1, 0.32, 1);
@@ -131,7 +135,7 @@ input[type="number"] {
 
 .switch input:checked + .slider:before {
   background-color: white;
-  translate: .9em .05em;
+  translate: 0.9em 0.05em;
   width: 1.5em;
   height: 1.5em;
   bottom: 0;
@@ -146,19 +150,19 @@ body {
 }
 
 ::-webkit-scrollbar {
-    width: 12px;
+  width: 12px;
 }
 
 ::-webkit-scrollbar-track {
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.3); 
-    background-color: $body-bg;
-    border-radius: 10px;
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.3);
+  background-color: $body-bg;
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-    border-radius: 10px;
-    background-color: $secondary;
-    -webkit-box-shadow: inset 0 0 6px rgba(0,0,0,0.5); 
+  border-radius: 10px;
+  background-color: $secondary;
+  -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, 0.5);
 }
 
 @import "../node_modules/bootstrap/scss/bootstrap";
@@ -175,8 +179,8 @@ $utilities: map-merge(
         50: 50%,
         75: 75%,
         100: 100%,
-        auto: auto
-      )
-    )
+        auto: auto,
+      ),
+    ),
   )
 );
