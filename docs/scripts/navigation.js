@@ -26,7 +26,7 @@ const buttons = [
   { id: "goHome", text: "Request Songs" },
   { id: "goQueue", text: "Queue" },
   { id: "goAdmin", text: "Song Manager" },
-  { id: "goAdminSettings", text: "Admin Settings" },
+  { id: "goAdminSettings", text: "Settings" },
 ];
 
 buttons.forEach((btnInfo) => {
