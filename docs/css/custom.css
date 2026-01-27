@@ -15,7 +15,7 @@ body {
   max-height: 100vh;
 }
 
-.queue-main {
+#queue-main {
   overflow-y: auto !important;
 }
 
