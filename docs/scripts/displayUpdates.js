@@ -25,7 +25,6 @@ export const homeDisplaySongs = async (searching, query = "") => {
 
     const userRequests = await getUserRequests(userID);
     const userRequestIDs = userRequests.statusCode ? [] : userRequests.map((request) => request.id);
-    console.log(userRequestIDs);
     const remainingRequestsElement = document.getElementById("remaining-requests");
     if (!userRequests.statusCode) {
         remainingRequestsElement.textContent = numbOfAllowedRequests - userRequests.length;
