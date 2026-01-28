@@ -1,13 +1,15 @@
-import { getRequestedSongs, searchSongs } from "./service.js";
+import { getRequestedSongs, getUserRequests, searchSongs } from "./service.js";
 import {
   addSongToPlaylist,
   requestSong,
   songsAddedToPlaylist,
+  userID,
 } from "./domain.js";
 import {
   currentPlaylist,
   currentUser,
   loadSettingsFromApi,
+  numbOfAllowedRequests,
 } from "./constants.js";
 
 
@@ -20,6 +22,17 @@ export const homeDisplaySongs = async (searching, query = "") => {
   document.getElementById("SectionHeader").textContent = searching
     ? `Search Results for "${query}"`
     : `Requested Songs`;
+
+    const userRequests = await getUserRequests(userID);
+    const userRequestIDs = userRequests.statusCode ? [] : userRequests.map((request) => request.id);
+    console.log(userRequestIDs);
+    const remainingRequestsElement = document.getElementById("remaining-requests");
+    if (!userRequests.statusCode) {
+        remainingRequestsElement.textContent = numbOfAllowedRequests - userRequests.length;
+    }
+    else{
+        remainingRequestsElement.textContent = numbOfAllowedRequests;
+    }
 
   const results = searching
     ? await searchSongs(query)
@@ -43,7 +56,15 @@ export const homeDisplaySongs = async (searching, query = "") => {
       resultElement.classList.add("p-3");
       resultElement.classList.add("responsive-width");
       resultElement.classList.add("me-4");
-      resultElement.classList.add("bg-secondary");
+      if (userRequestIDs.includes(result.id))
+      {
+        resultElement.classList.add("bg-secondary");
+      }
+      else{
+        resultElement.classList.add("border");
+        resultElement.classList.add("border-primary");
+      }
+
       resultElement.classList.add("rounded");
 
       const imgElement = document.createElement("img");
@@ -92,7 +113,14 @@ export const homeDisplaySongs = async (searching, query = "") => {
         resultElement.classList.add("text-black");
       });
       resultElement.addEventListener("mouseleave", () => {
+        if (userRequestIDs.includes(result.id))
+      {
         resultElement.classList.add("bg-secondary");
+      }
+      else{
+        resultElement.classList.add("border");
+        resultElement.classList.add("border-primary");
+      }
         resultElement.classList.remove("bg-primary");
         resultElement.classList.remove("text-black");
       });
