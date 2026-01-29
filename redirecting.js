@@ -1,0 +1,1 @@
+window.location.href = "https://snowcollege.bootsnswing.com";
