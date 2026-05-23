@@ -1,1 +1,1 @@
-window.location.href = "https://snowcollege.bootsnswing.com";
+window.location.href = "https://stage.bootsnswing.com/snow/now-playing.html";
